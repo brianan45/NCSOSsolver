@@ -1,6 +1,7 @@
 import sympy as sp
 import cvxpy as cp
 import numpy as np
+from soltoconstraints import soltoconstraints
 
 # Define symbolic variable
 x = sp.Symbol('x')
@@ -13,6 +14,7 @@ p = x**6 + 3*x**4 + 3*x**2 + 1
 
 # Define symmetric 4x4 matrix Q with cvxpy variables
 Q = cp.Variable((4, 4), PSD=True)
+print(Q[0,0])
 
 # Build the expression v^T Q v symbolically
 Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{max(i,j)}'))
@@ -37,23 +39,28 @@ sol = sp.solve(eqns)
 print(sol)
 
 # Fill in Q matrix with solved values
-Q_num = np.zeros((4, 4))
-for i in range(4):
-    for j in range(i, 4):
-        key = f'q{i}{j}'
-        print(key)
-        val = sol.get(sp.Symbol(key), sol.get(sp.Symbol(f'q{j}{i}'), 0))
-        print(val)
-        Q_num[i, j] = Q_num[j, i] = val # how to assign variables to matrix entries
+# Q_num = np.zeros((4, 4))
+# for i in range(4):
+#     for j in range(i, 4):
+#         key = f'q{i}{j}'
+#         print(key)
+#         val = sol.get(sp.Symbol(key), sol.get(sp.Symbol(f'q{j}{i}'), 0))
+#         print(val)
+#         Q_num[i, j] = Q_num[j, i] = val
 
-# What is considered an "optimal" Q without any objective function or constraints?
+# make a trivial objective function
+# one constraint will be Q PSD
+# other constraints come from polynomial equality
+# extract variables of Q
+
+
 
 # Print Q
 print("Q matrix:")
-print(np.round(Q_num, 4))
+print(np.round(Q_sym, 4))
 
 # Cholesky decomposition (to get SOS)
-R = np.linalg.cholesky(Q_num)
+R = np.linalg.cholesky(Q_sym)
 
 print("\nCholesky factor R:")
 print(np.round(R, 4))
