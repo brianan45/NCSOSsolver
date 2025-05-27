@@ -1,7 +1,7 @@
 import sympy as sp
 import cvxpy as cp
 import numpy as np
-from soltoconstraints import soltoconstraints
+from sp_to_cp_constraint import sp_to_cp_constraint
 
 # Define symbolic variable
 x = sp.Symbol('x')
@@ -14,11 +14,9 @@ p = x**6 + 3*x**4 + 3*x**2 + 1
 
 # Define symmetric 4x4 matrix Q with cvxpy variables
 Q = cp.Variable((4, 4), PSD=True)
-print(Q[0,0])
 
 # Build the expression v^T Q v symbolically
 Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{max(i,j)}'))
-# sp.Matrix necessary to compute v.T * Q_sym * v
 
 # v^T * Q * v symbolic expansion
 poly_expr = (v.T * Q_sym * v)[0, 0].expand()
@@ -38,36 +36,24 @@ print(eqns)
 sol = sp.solve(eqns)
 print(sol)
 
-# Fill in Q matrix with solved values
-# Q_num = np.zeros((4, 4))
-# for i in range(4):
-#     for j in range(i, 4):
-#         key = f'q{i}{j}'
-#         print(key)
-#         val = sol.get(sp.Symbol(key), sol.get(sp.Symbol(f'q{j}{i}'), 0))
-#         print(val)
-#         Q_num[i, j] = Q_num[j, i] = val
 
-# make a trivial objective function
-# one constraint will be Q PSD
-# other constraints come from polynomial equality
-# extract variables of Q
+cvx_eqs = []
+for sym, expr in sol.items():
+    eq = sp.Eq(sym, expr)
+    cvx_eqs.append(sp_to_cp_constraint(eq, Q))
 
+# Print all converted CVXPY equations
+for e in cvx_eqs:
+    print(e)
 
+problem = cp.Problem(cp.Minimize(1),cvx_eqs)
+problem.solve()
 
-# Print Q
 print("Q matrix:")
-print(np.round(Q_sym, 4))
+print(Q.value)
 
-# Cholesky decomposition (to get SOS)
-R = np.linalg.cholesky(Q_sym)
+L = np.linalg.cholesky(Q.value)
+print("\n", np.round(L,4))
 
-print("\nCholesky factor R:")
-print(np.round(R, 4))
-
-# Show SOS decomposition
-print("\nSOS decomposition terms (rows of R · v):")
-for i in range(4):
-    row = R[i, :]
-    poly = sum(row[j] * v[j] for j in range(4))
-    print(f"({sp.simplify(poly)})^2")
+print("\nSOS decomposition:")
+print(np.dot(v.T @ L,L.T @ v))
