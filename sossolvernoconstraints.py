@@ -16,7 +16,8 @@ from matrix_sqrt import matrix_sqrt
 v, vars = get_monomial_vector()
 # print(v)
 # print(vars)
-p = get_polynomial_from_input(vars)
+lm_sp = sp.Symbol("lm_sp")
+p = get_polynomial_from_input(vars) + lm_sp
 # print(p)
 m = v.rows
 
@@ -28,11 +29,8 @@ lm_cp = cp.Variable(name="lm_cp")
 Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{max(i,j)}'))
 
 # v^T * Q * v symbolic expansion
-lm_sp = sp.Symbol("lm_sp")
-poly_expr = ((v.T * Q_sym * v)[0, 0] + lm_sp).expand()
-# print(poly_expr)
-# print((Q_sym * v)[0, 0].expand())
-# print((v.T * Q_sym)[0, 0].expand())
+poly_expr = ((v.T * Q_sym * v)[0, 0]).expand()
+print(poly_expr)
 
 # Convert both to polynomials
 poly_expr_poly = sp.Poly(poly_expr, *vars)
@@ -56,8 +54,8 @@ for sym, expr in sol.items():
 cvx_eqs.append(lm_cp >= 0)
 
 # Print all converted CVXPY equations
-# for e in cvx_eqs:
-#     print(e)
+for e in cvx_eqs:
+    print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
 problem.solve()
