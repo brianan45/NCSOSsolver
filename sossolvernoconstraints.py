@@ -6,17 +6,18 @@ from monomial_input import get_monomial_vector
 from poly_input import get_polynomial_from_input
 from sp_to_cp_constraint import sp_to_cp_constraint
 from get_coeffs import get_coeffs
+from matrix_sqrt import matrix_sqrt
 
-# An SOS solver that takes a set of variables, a vector
-# v of monomials in those variables, and a polynomial p(x)
-# in those variables, and finds the SOS decomposition of
+# An SOS solver that takes a set of variables, a vector v of
+# monomials in those variables, a polynomial p(x) in those variables,
+# and a set of constraints g(x)=0, and finds the SOS decomposition of
 # p(x) or the minimum lambda such that p(x) + lambda is an SOS
 
 v, vars = get_monomial_vector()
-print(v)
-print(vars)
+# print(v)
+# print(vars)
 p = get_polynomial_from_input(vars)
-print(p)
+# print(p)
 m = v.rows
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
@@ -29,7 +30,7 @@ Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{m
 # v^T * Q * v symbolic expansion
 lm_sp = sp.Symbol("lm_sp")
 poly_expr = ((v.T * Q_sym * v)[0, 0] + lm_sp).expand()
-print(poly_expr)
+# print(poly_expr)
 # print((Q_sym * v)[0, 0].expand())
 # print((v.T * Q_sym)[0, 0].expand())
 
@@ -38,8 +39,8 @@ poly_expr_poly = sp.Poly(poly_expr, *vars)
 target_poly = sp.Poly(p, *vars)
 
 sol = get_coeffs(poly_expr_poly,target_poly,vars)
-print("Solution:")
-print(sol)
+# print("Solution:")
+# print(sol)
 
 if not sol:
     print("No solution; try a different monomial vector")
@@ -55,12 +56,15 @@ for sym, expr in sol.items():
 cvx_eqs.append(lm_cp >= 0)
 
 # Print all converted CVXPY equations
-for e in cvx_eqs:
-    print(e)
+# for e in cvx_eqs:
+#     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
 problem.solve()
-print(problem.status)
+
+if problem.status == "infeasible":
+    print("Problem is infeasible. Exiting.")
+    sys.exit()
 
 print("Q matrix:")
 print(Q.value)
@@ -68,8 +72,7 @@ print(Q.value)
 print("\nLambda:")
 print(lm_cp.value)
 
-L = np.linalg.cholesky(Q.value)
-print("\n", np.round(L,4))
+Q_sqrt = matrix_sqrt(Q.value)
 
 print("\nSOS decomposition:")
-print(np.dot(v.T @ L,L.T @ v))
+print(np.dot(v.T @ Q_sqrt,Q_sqrt.T @ v))
