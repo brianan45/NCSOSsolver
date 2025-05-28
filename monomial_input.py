@@ -6,6 +6,8 @@ from sympy.parsing.sympy_parser import (
     convert_xor
 )
 
+# a function that gets a set of variables and a monomial vector from input
+
 def get_monomial_vector():
     var_input = input("Enter the variables (comma-separated): ")
     variables = sp.symbols(var_input)

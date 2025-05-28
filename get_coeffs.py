@@ -1,5 +1,7 @@
 import sympy as sp
 
+# a function that solves for the coefficents of two equations by comparing them term by term
+
 def get_coeffs(expr1, expr2, vars):
     """
     Match coefficients of two multivariate polynomial expressions and solve for unknowns.

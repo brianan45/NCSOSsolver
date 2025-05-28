@@ -2,6 +2,9 @@ import sympy as sp
 import re
 from monomial_input import get_monomial_vector
 
+# a function that, given a set of variables, accepts a
+# polynomial in those variables from user input
+
 def preprocess_input(expr_str):
     # Replace ^ with **
     expr_str = expr_str.replace('^', '**')

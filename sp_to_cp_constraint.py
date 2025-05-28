@@ -2,21 +2,32 @@ import sympy as sp
 import cvxpy as cp
 import re
 
-def sp_to_cp_constraint(eq, Q):
+# a function that takes a constraint and replaces any
+# sympy variables with the corresponding cvxpy variables
+
+def sp_to_cp_constraint(eq, Q, extra_subs=None):
     """
-    Converts a SymPy equation into a CVXPY equation using Q[i,j] variables.
+    Converts a SymPy equation into a CVXPY constraint using:
+    - Q[i,j] variables for symbolic qij entries
+    - optional extra substitutions for other variables like 'lm'
     """
-    all_symbols = eq.free_symbols # get the varables used in the equation
-    pattern = re.compile(r'q(\d+)(\d+)') # pattern for checking for symbolic variables
+    if extra_subs is None:
+        extra_subs = {}
+
+    all_symbols = eq.free_symbols
+    pattern = re.compile(r'q(\d+)(\d+)')  # pattern for symbolic matrix entries
     sym_to_cvx = {}
 
     for s in all_symbols:
-        match = pattern.match(str(s)) # boolean for whether variable matches pattern
-        if match:
-            i, j = int(match.group(1)), int(match.group(2)) # get the indices of the matrix
-            if i >= Q.shape[0] or j >= Q.shape[1]:
-                raise IndexError(f"Symbol q{i}{j} exceeds dimensions of Q.")
-            sym_to_cvx[s] = Q[i, j]  # 0-based indexing
+        if s in extra_subs:
+            sym_to_cvx[s] = extra_subs[s]
+        else:
+            match = pattern.match(str(s))
+            if match:
+                i, j = int(match.group(1)), int(match.group(2))
+                if i >= Q.shape[0] or j >= Q.shape[1]:
+                    raise IndexError(f"Symbol q{i}{j} exceeds dimensions of Q.")
+                sym_to_cvx[s] = Q[i, j]
 
     def sympy_to_cvxpy(expr):
         if expr.is_Number:
