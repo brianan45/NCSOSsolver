@@ -13,7 +13,7 @@ def get_monomial_vector():
         variables = (variables,)
 
     monomial_input = input(
-        f"Enter the monomials in terms of {', '.join(str(v) for v in variables)} (comma-separated with natural number exponentsgit ): ")
+        f"Enter the monomials in terms of {', '.join(str(v) for v in variables)} (comma-separated with natural number exponents): ")
 
     try:
         local_dict = {str(v): v for v in variables}
