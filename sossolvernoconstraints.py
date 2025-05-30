@@ -64,13 +64,45 @@ if problem.status == "infeasible":
     print("Problem is infeasible. Exiting.")
     sys.exit()
 
+def simp_matrix(matrix, tol=1e-5):
+    return np.where(np.abs(matrix) < tol, 0, matrix)
+
+def clean_expr(expr, tol=1e-5):
+    return expr.replace(
+        lambda e: e.is_Number,
+        lambda e: 0 if abs(e) < tol else (round(e) if abs(e - round(e)) < tol else e)
+    )
+
+def clean_np(obj, zero_tol=1e-10, int_tol=1e-5):
+    def clean_val(x):
+        if abs(x) < zero_tol:
+            return 0
+        elif abs(x - round(x)) < int_tol:
+            return round(x)
+        return x
+
+    if isinstance(obj, (int, float, np.number)):
+        return clean_val(obj)
+    elif isinstance(obj, np.ndarray):
+        return np.vectorize(clean_val)(obj)
+    else:
+        raise TypeError("Input must be a number or a NumPy array.")
+
 print("Q matrix:")
-print(Q.value)
+print(simp_matrix(Q.value))
+
+# print("\nLambda:")
+# print(simplify_expr(lm_cp.value))
 
 print("\nLambda:")
-print(lm_cp.value)
+print(0 if abs(lm_cp.value) < 1e-5 else lm_cp.value)
 
 Q_sqrt = matrix_sqrt(Q.value)
 
-print("\nSOS decomposition:")
-print(np.dot(v.T @ Q_sqrt,Q_sqrt.T @ v))
+print(clean_np(lm_cp.value))
+print(clean_np(Q.value))
+
+sos_expr = (v.T @ Q_sqrt @ Q_sqrt.T @ v)[0, 0]
+sos_simp = clean_expr(sp.expand(sos_expr))
+print("\nSimplified SOS decomposition:")
+print(sos_simp)
