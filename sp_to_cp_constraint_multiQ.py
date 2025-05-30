@@ -2,32 +2,42 @@ import sympy as sp
 import cvxpy as cp
 import re
 
-# a function that takes a constraint and replaces any
-# sympy variables with the corresponding cvxpy variables
-
-def sp_to_cp_constraint_multiQ(eq, Q, extra_subs=None):
+def sp_to_cp_constraint_multiQ(eq, Q_list, extra_subs=None):
     """
     Converts a SymPy equation into a CVXPY constraint using:
-    - Q[i,j] variables for symbolic qij entries
-    - optional extra substitutions for other variables like 'lm'
+    - Qn_ij symbols corresponding to Q_list[n][i,j]
+    - extra_subs for substitutions like lm_cp, etc.
+
+    Args:
+        eq (sympy.Eq): Equation with symbolic q-entries.
+        Q_list (list of cvxpy.Variable): List of PSD matrices.
+        extra_subs (dict): Optional mapping from sympy symbols to cvxpy variables.
+
+    Returns:
+        cvxpy constraint (e.g., lhs == rhs)
     """
     if extra_subs is None:
         extra_subs = {}
 
-    all_symbols = eq.free_symbols
-    pattern = re.compile(r'q(\d+)(\d+)')  # pattern for symbolic matrix entries
+    pattern = re.compile(r'q(\d+)_(\d+)(\d+)')  # e.g., q0_12 -> Q0[1,2]
+
     sym_to_cvx = {}
 
-    for s in all_symbols:
+    for s in eq.free_symbols:
         if s in extra_subs:
             sym_to_cvx[s] = extra_subs[s]
         else:
             match = pattern.match(str(s))
             if match:
-                i, j = int(match.group(1)), int(match.group(2))
+                q_idx, i, j = int(match.group(1)), int(match.group(2)), int(match.group(3))
+                if q_idx >= len(Q_list):
+                    raise IndexError(f"Q index {q_idx} out of range.")
+                Q = Q_list[q_idx]
                 if i >= Q.shape[0] or j >= Q.shape[1]:
-                    raise IndexError(f"Symbol q{i}{j} exceeds dimensions of Q.")
+                    raise IndexError(f"Index q{q_idx}_{i}{j} exceeds dimensions of Q{q_idx}.")
                 sym_to_cvx[s] = Q[i, j]
+            else:
+                raise ValueError(f"Unrecognized symbol format: {s}")
 
     def sympy_to_cvxpy(expr):
         if expr.is_Number:

@@ -4,7 +4,7 @@ import numpy as np
 import sys
 from monomial_input import get_monomial_vector
 from poly_input import get_polynomial_from_input
-from sp_to_cp_constraint import sp_to_cp_constraint
+from sp_to_cp_constraint_multiQ import sp_to_cp_constraint_multiQ
 from get_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
 from get_constraints import get_constraints
@@ -13,6 +13,10 @@ from get_constraints import get_constraints
 # monomials in those variables, a polynomial p(x) in those variables,
 # and a set of constraints g(x)=0, and finds the SOS decomposition of
 # p(x) or the minimum lambda such that p(x) + lambda is an SOS
+
+# Issues: solving x^3
+# SOS functions with large positive constants are incorrectly infeasible (ex: x^2y^2+100000000)
+
 
 v, vars = get_monomial_vector()
 # print(v)
@@ -39,7 +43,7 @@ Qi_syms = [
 # Build the symbolic polynomial: v^T Q0 v + sum g_i * (v^T Qi v)
 poly_expr = (v.T * Q0_sym * v)[0, 0]
 for g_sym, Qi_sym in zip(g_list, Qi_syms):
-    sos_poly += g_sym * (v.T * Qi_sym * v)[0, 0]
+    poly_expr += g_sym * (v.T * Qi_sym * v)[0, 0]
 print(poly_expr)
 
 # Convert both to polynomials
@@ -59,7 +63,7 @@ extra_subs = {lm_sp: lm_cp}
 cvx_eqs = []
 for sym, expr in sol.items():
     eq = sp.Eq(sym, expr)
-    cvx_eqs.append(sp_to_cp_constraint(eq, Q, extra_subs=extra_subs))
+    cvx_eqs.append(sp_to_cp_constraint_multiQ(eq, [Q0] + Qi_list, extra_subs=extra_subs))
 
 cvx_eqs.append(lm_cp >= 0)
 
@@ -69,6 +73,7 @@ for e in cvx_eqs:
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
 problem.solve()
+print(problem.status)
 
 if problem.status == "infeasible":
     print("Problem is infeasible. Exiting.")
@@ -80,7 +85,14 @@ if problem.status == "infeasible":
 print("\nLambda:")
 print(lm_cp.value)
 
-Q_sqrt = matrix_sqrt(Q.value)
+SOS_decomp = (v.T * Q0.value * v)[0, 0]  # v^T Q0 v
+
+# Add g_i * (v^T Qi v) terms
+for i, g in enumerate(g_list):
+    Qi_val = Qi_list[i].value
+    SOS_decomp += g * (v.T * sp.Matrix(Qi_val) * v)[0, 0]
+
+SOS_decomp = SOS_decomp.expand() + lm_cp.value
 
 print("\nSOS decomposition:")
-print(np.dot(v.T @ Q_sqrt,Q_sqrt.T @ v))
+print(SOS_decomp)
