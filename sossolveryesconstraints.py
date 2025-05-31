@@ -8,6 +8,7 @@ from sp_to_cp_constraint_multiQ import sp_to_cp_constraint_multiQ
 from get_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
 from get_constraints import get_constraints
+from clean_value import clean_value
 
 # An SOS solver that takes a set of variables, a vector v of
 # monomials in those variables, a polynomial p(x) in those variables,
@@ -24,20 +25,25 @@ v, vars = get_monomial_vector()
 lm_sp = sp.Symbol("lm_sp")
 p = get_polynomial_from_input(vars) + lm_sp
 g_list = get_constraints(vars)
+print(g_list)
 # print(p)
 m = v.rows
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q0 = cp.Variable((m, m), PSD=True)  # for main SOS
 Qi_list = [cp.Variable((m, m), PSD=True) for _ in g_list]  # one per constraint
+print(Qi_list)
 lm_cp = cp.Variable(name="lm_cp")
 
 # Symbolic Q matrices for matching coefficients
 Q0_sym = sp.Matrix(m, m, lambda i, j: sp.Symbol(f'q0_{min(i,j)}{max(i,j)}'))
 Qi_syms = [
-    sp.Matrix(m, m, lambda i, j: sp.Symbol(f'q{i+1}_{min(i,j)}{max(i,j)}'))
-    for i in range(len(g_list))
+    sp.Matrix(m, m, lambda i, j, k=k: sp.Symbol(f'q{k+1}_{min(i,j)}{max(i,j)}'))
+    for k in range(len(g_list))
 ]
+print(Q0_sym)
+for m in Qi_syms:
+    print(m)
 
 # v^T * Q * v symbolic expansion
 # Build the symbolic polynomial: v^T Q0 v + sum g_i * (v^T Qi v)
@@ -83,7 +89,7 @@ if problem.status == "infeasible":
 # print(Q.value)
 
 print("\nLambda:")
-print(lm_cp.value)
+print(clean_value(lm_cp.value))
 
 SOS_decomp = (v.T * Q0.value * v)[0, 0]  # v^T Q0 v
 
@@ -92,7 +98,7 @@ for i, g in enumerate(g_list):
     Qi_val = Qi_list[i].value
     SOS_decomp += g * (v.T * sp.Matrix(Qi_val) * v)[0, 0]
 
-SOS_decomp = SOS_decomp.expand() + lm_cp.value
-
-print("\nSOS decomposition:")
-print(SOS_decomp)
+print("\nSOS decomposition of p(x) + λ:")
+print(clean_value(SOS_decomp.expand()))
+# print("\nNon-simplified SOS decomposition of p(x) + λ:")
+# print(clean_value(SOS_decomp))
