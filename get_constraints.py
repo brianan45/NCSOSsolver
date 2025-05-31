@@ -6,7 +6,7 @@ def get_constraints(vars):
     constraints = []
 
     while True:
-        inp = input(f"Enter equality-with-0 constraints g({', '.join(str(v) for v in vars)}) (comma-separated) (press Enter to finish): ").strip()
+        inp = input(f"Enter greater-than-0 constraints g({', '.join(str(v) for v in vars)}) (comma-separated) (press Enter to finish): ").strip()
         if inp == "":
             break
 
