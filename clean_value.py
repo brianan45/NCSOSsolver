@@ -4,7 +4,7 @@ import sympy as sp
 # clean_value takes an sp expression, np scalar, or np
 # vector, and returns a rounded version of the input
 
-def clean_value(val, zero_tol=1e-5, int_tol=1e-5):
+def clean_value(val, zero_tol=1e-4, int_tol=1e-4):
     def is_near_zero(x): return abs(x) < zero_tol
     def is_near_int(x): return abs(x - round(x)) < int_tol
 
