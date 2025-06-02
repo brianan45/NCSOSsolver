@@ -15,8 +15,10 @@ from clean_value import clean_value
 # and a set of constraints g(x)=0, and finds the SOS decomposition of
 # p(x) or the minimum lambda such that p(x) + lambda is an SOS
 
-# Issues: solving x^3
+# Issues: solving x^3, solving motzkin poly, solving x with -x >= 0, solving x+1 with -x+1 >= 0
+# solving for x with x-1 >= 0, -x-1 >= 0 (no feasible region) yields lambda = 0 rather than infeasible
 # SOS functions with large positive constants are incorrectly infeasible (ex: x^2y^2+100000000)
+# solve x^2-100 s.t. x^2-50 >= 0 -> x^2-50; not an SOS?
 
 
 v, vars = get_monomial_vector()
@@ -78,7 +80,7 @@ for e in cvx_eqs:
     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve()
+problem.solve(solver=cp.CVXOPT)
 print(problem.status)
 
 if problem.status == "infeasible":

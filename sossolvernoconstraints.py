@@ -59,7 +59,7 @@ for e in cvx_eqs:
     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve()
+problem.solve(solver=cp.CVXOPT)
 
 if problem.status == "infeasible":
     print("Problem is infeasible. Exiting.")
