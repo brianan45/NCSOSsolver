@@ -15,11 +15,9 @@ from clean_value import clean_value
 # and a set of constraints g(x)=0, and finds the SOS decomposition of
 # p(x) or the minimum lambda such that p(x) + lambda is an SOS
 
-# Issues: solving x^3, solving motzkin poly, solving x with -x >= 0, solving x+1 with -x+1 >= 0
+# Issues: solving x^n for large, solving motzkin poly, solving x with -x >= 0, solving x+1 with -x+1 >= 0
 # solving for x with x-1 >= 0, -x-1 >= 0 (no feasible region) yields lambda = 0 rather than infeasible
-# SOS functions with large positive constants are incorrectly infeasible (ex: x^2y^2+100000000)
-# solve x^2-100 s.t. x^2-50 >= 0 -> x^2-50; not an SOS?
-
+# solve x^2-100 s.t. x^2-50 >= 0 -> x^2-50; fix output to get Putinar form
 
 v, vars = get_monomial_vector()
 # print(v)
@@ -80,7 +78,7 @@ for e in cvx_eqs:
     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve(solver=cp.CVXOPT)
+problem.solve(solver=cp.CVXOPT, verbose=True)
 print(problem.status)
 
 if problem.status == "infeasible":
@@ -92,15 +90,17 @@ if problem.status == "infeasible":
 
 print("\nLambda:")
 print(clean_value(lm_cp.value))
+print("\nQ Matrices:")
+print(clean_value(Q0.value))
+for Q in Qi_list:
+    print(clean_value(Q.value))
 
-SOS_decomp = (v.T * Q0.value * v)[0, 0]  # v^T Q0 v
+SOS_decomp = (v.T * clean_value(Q0.value) * v)[0, 0]  # v^T Q0 v
 
 # Add g_i * (v^T Qi v) terms
 for i, g in enumerate(g_list):
-    Qi_val = Qi_list[i].value
-    SOS_decomp += g * (v.T * sp.Matrix(Qi_val) * v)[0, 0]
+    Qi_val = clean_value(Qi_list[i].value)
+    SOS_decomp = sp.Add(SOS_decomp, sp.Mul(g, (v.T * Qi_val * v)[0, 0], evaluate=False), evaluate=False)
 
 print("\nSOS decomposition of p(x) + λ:")
-print(clean_value(SOS_decomp.expand()))
-# print("\nNon-simplified SOS decomposition of p(x) + λ:")
-# print(clean_value(SOS_decomp))
+print(SOS_decomp)
