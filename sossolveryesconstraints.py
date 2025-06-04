@@ -9,6 +9,7 @@ from get_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
 from get_constraints import get_constraints
 from clean_value import clean_value
+from is_feasible import is_feasible
 
 # An SOS solver that takes a set of variables, a vector v of
 # monomials in those variables, a polynomial p(x) in those variables,
@@ -24,10 +25,17 @@ v, vars = get_monomial_vector()
 # print(vars)
 lm_sp = sp.Symbol("lm_sp")
 p = get_polynomial_from_input(vars) + lm_sp
+print("p(x)=",p)
 g_list = get_constraints(vars)
-print(g_list)
-# print(p)
+print("Constraints: ", g_list)
 m = v.rows
+
+feasible = is_feasible(g_list,vars)
+print(feasible)
+
+if not feasible:
+    print("Problem has no feasible region")
+    sys.exit()
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q0 = cp.Variable((m, m), PSD=True)  # for main SOS
@@ -78,10 +86,10 @@ for e in cvx_eqs:
     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve(solver=cp.CVXOPT, verbose=True)
+problem.solve(solver=cp.SCS)
 print(problem.status)
 
-if problem.status == "infeasible":
+if problem.status != "optimal":
     print("Problem is infeasible. Exiting.")
     sys.exit()
 
