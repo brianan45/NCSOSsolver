@@ -1,5 +1,5 @@
 import sympy as sp
-from sympy.logic.inference import satisfiable
+from sympy import symbols, And, solve
 
 def is_feasible(g_list, vars):
     """
@@ -12,13 +12,8 @@ def is_feasible(g_list, vars):
     Returns:
         bool: True if feasible region is non-empty, False otherwise
     """
-    # Convert constraints to inequalities
     inequalities = [g >= 0 for g in g_list]
+    constraint_expr = And(*inequalities)
 
-    # Build logical conjunction of constraints
-    constraint_expr = sp.And(*inequalities)
-
-    # Use satisfiable with domain='real'
-    model = satisfiable(constraint_expr, rational=True)
-
-    return bool(model)
+    sol = sp.reduce_inequalities(constraint_expr, vars)
+    return sol != False  # reduce_inequalities returns False if infeasible
