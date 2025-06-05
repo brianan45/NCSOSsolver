@@ -11,10 +11,10 @@ from get_constraints import get_constraints
 from clean_value import clean_value
 from is_feasible import is_feasible
 
-# An SOS solver that takes a set of variables, a vector v of
+# A function that takes a set of variables, a vector v of
 # monomials in those variables, a polynomial p(x) in those variables,
-# and a set of constraints g(x)=0, and finds the SOS decomposition of
-# p(x) or the minimum lambda such that p(x) + lambda is an SOS
+# and a set of constraints g(x)=0, and returns the SOS decomposition of
+# p(x) + λ and the minimum lambda such that p(x) + λ is an SOS
 
 # v = sympy monomial vector
 # vars = list of sympy variables
@@ -102,15 +102,15 @@ def sos_solver_constraints(v, vars, p, g_list):
     print("\nLambda:")
     print(clean_value(lm_cp.value))
     print("\nQ Matrices:")
-    print((Q0.value))
+    print(clean_value(Q0.value))
     for Q in Qi_list:
-        print((Q.value))
+        print(clean_value(Q.value))
 
-    SOS_decomp = (v.T * (Q0.value) * v)[0, 0]  # v^T Q0 v
+    SOS_decomp = (v.T * clean_value(Q0.value) * v)[0, 0]  # v^T Q0 v
 
     # Add g_i * (v^T Qi v) terms
     for i, g in enumerate(g_list):
-        Qi_val = (Qi_list[i].value)
+        Qi_val = clean_value(Qi_list[i].value)
         SOS_decomp = sp.Add(SOS_decomp, sp.Mul(g, (v.T * Qi_val * v)[0, 0], evaluate=False), evaluate=False)
 
     print("\nSOS decomposition of p(x) + λ:")
