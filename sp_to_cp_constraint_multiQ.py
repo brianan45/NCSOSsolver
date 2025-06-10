@@ -19,7 +19,7 @@ def sp_to_cp_constraint_multiQ(eq, Q_list, extra_subs=None):
     if extra_subs is None:
         extra_subs = {}
 
-    pattern = re.compile(r'q(\d+)_(\d+)(\d+)')  # e.g., q0_12 -> Q0[1,2]
+    pattern = re.compile(r'[qQ](\d+)_(\d+)(\d+)')
 
     sym_to_cvx = {}
 
