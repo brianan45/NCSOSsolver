@@ -10,7 +10,7 @@ from sympy.parsing.sympy_parser import (
 
 def get_monomial_vector():
     var_input = input("Enter the variables (comma-separated): ")
-    variables = sp.symbols(var_input)
+    variables = sp.symbols(var_input, real=True)
     if isinstance(variables, sp.Symbol):
         variables = (variables,)
 
