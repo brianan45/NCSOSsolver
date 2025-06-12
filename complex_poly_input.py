@@ -42,8 +42,3 @@ def get_polynomial_from_input(variables):
     except Exception as e:
         print("Error parsing polynomial:", e)
         return None
-    
-s = '(x - i)^2 + 2xi'
-s_clean = preprocess_input(s)
-print("Processed:", s_clean)
-print("Parsed:", sp.sympify(s_clean, locals={'I': sp.I}))
