@@ -72,7 +72,7 @@ print("\nLambda:")
 print(clean_value(lm_cp.value))
 
 Q_sqrt = matrix_sqrt(Q.value)
-
-sos_expr = (v.T @ Q_sqrt @ Q_sqrt.T @ v)[0, 0]
+vQv_sqrt = Q_sqrt.T @ v
+sos_expr = clean_value((vQv_sqrt.T * vQv_sqrt)[0,0])
 print("\n SOS decomposition:")
-print(clean_value(sp.expand(sos_expr)))
+print(sos_expr)
