@@ -3,7 +3,7 @@ import cvxpy as cp
 import numpy as np
 import sys
 from monomial_input import get_monomial_vector
-from poly_input import get_polynomial_from_input
+from complex_poly_input import get_polynomial_from_input
 from sp_to_cp_constraint_multiQ import sp_to_cp_constraint_multiQ
 from get_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
@@ -56,11 +56,13 @@ target_poly_r = sp.Poly(p_r, *vars)
 
 sp_poly_i = sp.Poly(poly_i, *vars)
 target_poly_i = sp.Poly(p_i, *vars)
+print(sp_poly_r, "\n", target_poly_r, "\n", sp_poly_i, "\n", target_poly_i)
 
 sol_r = get_coeffs(sp_poly_r,target_poly_r,vars)
-print(sol_r)
+# print(sol_r)
 sol_i = get_coeffs(sp_poly_i,target_poly_i,vars)
-print(sol_i)
+# print(sol_i)
+# print(type(sol_r),type(sol_i))
 sol = {**(sol_r or {}), **(sol_i or {})}
 print("Solution:")
 print(sol)
