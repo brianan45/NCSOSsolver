@@ -3,19 +3,19 @@ import re
 from monomial_input import get_monomial_vector
 
 def preprocess_input(expr_str):
-    # Replace ^ with **
+    # Step 1: Replace ^ with **
     expr_str = expr_str.replace('^', '**')
 
-    # Replace standalone 'i' with 'I' (imaginary unit)
-    expr_str = re.sub(r'(?<![\w])i(?![\w])', 'I', expr_str)
+    # Step 2: Replace all instances of the letter 'i' (imaginary unit) with 'I'
+    # This handles i, xi, 2xi, etc., by replacing 'i' with '*I' if it's part of a longer string
+    expr_str = re.sub(r'(?<=[a-zA-Z0-9)])i(?![a-zA-Z0-9_])', '*I', expr_str)  # 2xi → 2x*I
+    expr_str = re.sub(r'(?<![a-zA-Z0-9_])i(?![a-zA-Z0-9_])', 'I', expr_str)   # i → I (standalone)
 
-    # Insert * between number/variable and parenthesis or variable: e.g., 2(x+y) → 2*(x+y), x2y → x*2*y
-    expr_str = re.sub(r'(?<=[0-9a-zA-Z)])(?=[a-zA-Z(])', '*', expr_str)
-
-    # Insert * between I (imaginary unit) and numbers/variables/parentheses, e.g., 3Ix → 3*I*x
-    expr_str = re.sub(r'(?<=[^*])I(?=[a-zA-Z0-9(])', 'I*', expr_str)
+    # Step 3: Insert * where needed (between number/letter and letter/paren)
+    expr_str = re.sub(r'(?<=[0-9a-zA-Z)])(?=[(a-zA-Z])', '*', expr_str)
 
     return expr_str
+
 
 def get_polynomial_from_input(variables):
     """
@@ -42,3 +42,8 @@ def get_polynomial_from_input(variables):
     except Exception as e:
         print("Error parsing polynomial:", e)
         return None
+    
+s = '(x - i)^2 + 2xi'
+s_clean = preprocess_input(s)
+print("Processed:", s_clean)
+print("Parsed:", sp.sympify(s_clean, locals={'I': sp.I}))
