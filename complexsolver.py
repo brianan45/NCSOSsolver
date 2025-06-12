@@ -19,9 +19,11 @@ v, vars = get_monomial_vector()
 # print(vars)
 lm_sp = sp.Symbol("lm_sp", real=True)
 p = get_polynomial_from_input(vars) + lm_sp
-print("p(x)=", p)
+print("p(x) =", p)
 p_r = sp.re(p)
 p_i = sp.im(p)
+print("p_r =", p_r)
+print("p_i =", p_i)
 m = v.rows
 i = sp.I
 
@@ -45,10 +47,10 @@ Q1_sym = sp.Matrix(m, m, lambda i, j: sp.Symbol(f'Q1_{min(i,j)}{max(i,j)}'))
 # Build the symbolic polynomial: v^T Q0 v + sum g_i * (v^T Q1 v)
 
 poly_r = (v.T * Q0_sym * v)[0, 0]
-print(poly_r)
+print("poly_r=",poly_r)
 
 poly_i = (v.T * Q1_sym * v)[0, 0]
-print(poly_i)
+print("poly_i=",poly_i)
 
 # Convert both to polynomials
 sp_poly_r = sp.Poly(poly_r, *vars)
