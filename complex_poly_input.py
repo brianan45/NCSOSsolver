@@ -3,19 +3,16 @@ import re
 from monomial_input import get_monomial_vector
 
 def preprocess_input(expr_str):
-    # Step 1: Replace ^ with **
+    # Step 1: Replace ^ with ** for exponentiation
     expr_str = expr_str.replace('^', '**')
 
-    # Step 2: Replace all instances of the letter 'i' (imaginary unit) with 'I'
-    # This handles i, xi, 2xi, etc., by replacing 'i' with '*I' if it's part of a longer string
-    expr_str = re.sub(r'(?<=[a-zA-Z0-9)])i(?![a-zA-Z0-9_])', '*I', expr_str)  # 2xi → 2x*I
-    expr_str = re.sub(r'(?<![a-zA-Z0-9_])i(?![a-zA-Z0-9_])', 'I', expr_str)   # i → I (standalone)
+    # Step 2: Replace all instances of 'i' with 'I' (imaginary unit)
+    expr_str = expr_str.replace('i', 'I')
 
-    # Step 3: Insert * where needed (between number/letter and letter/paren)
-    expr_str = re.sub(r'(?<=[0-9a-zA-Z)])(?=[(a-zA-Z])', '*', expr_str)
-
+    # Step 3: Insert multiplication sign * where needed (between number/letter and letter/paren)
+    expr_str = re.sub(r'(?<=[a-zA-Z0-9)])(?=[(a-zA-Z])', '*', expr_str)
+    
     return expr_str
-
 
 def get_polynomial_from_input(variables):
     """
