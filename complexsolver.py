@@ -8,6 +8,7 @@ from sp_to_cp_constraint_multiQ import sp_to_cp_constraint_multiQ
 from get_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
 from clean_value import clean_value
+from scipy.linalg import sqrtm
 
 # An SOS solver that takes a set of variables, a vector v of monomials
 # in those variables, a complex polynomial p(x) in those variables,
@@ -105,7 +106,22 @@ print(clean_value(Q0.value))
 print(clean_value(Q1.value))
 print(clean_value(Q2.value))
 
-SOS_decomp = (v.T * clean_value(Q0.value) * v)[0, 0] + i*(v.T * clean_value(Q1.value) * v)[0, 0] # v^T Q0 v
+Q0_sqrt = matrix_sqrt(Q0.value)
+# print(Q0_sqrt)
+# print(Q0_sqrt * Q0_sqrt.T)
+# Q0_sqrt2 = sqrtm(Q0.value)
+# print(Q0_sqrt2)
+# print(Q0_sqrt2.T @ Q0_sqrt2)
+vQ0v_sqrt = Q0_sqrt.T @ v
+print(vQ0v_sqrt)
+SOS_decomp = clean_value((vQ0v_sqrt.T * vQ0v_sqrt)[0,0])
+print(SOS_decomp)
+
+Q1_sqrt = matrix_sqrt(Q1.value)
+vQ1v_sqrt = Q1_sqrt.T @ v
+SOS_decomp += clean_value((vQ1v_sqrt.T * vQ1v_sqrt)[0,0])
+
+# SOS_decomp = (v.T * clean_value(Q0.value) * v)[0, 0] + i*(v.T * clean_value(Q1.value) * v)[0, 0] # v^T Q0 v
 
 print("\nSOS decomposition of p(x) + λ:")
 print(SOS_decomp)
