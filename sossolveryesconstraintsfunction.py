@@ -106,18 +106,26 @@ def sos_solver_constraints(v, vars, p, g_list):
     for Q in Qi_list:
         print(clean_value(Q.value))
 
-    SOS_decomp = (v.T * clean_value(Q0.value) * v)[0, 0]  # v^T Q0 v
+    Q0_sqrt = matrix_sqrt(clean_value(Q0.value))
+    vQ0v_sqrt = Q0_sqrt.T @ v
+    vQ0v = clean_value((vQ0v_sqrt.T * vQ0v_sqrt)[0,0])
+    result.append(vQ0v)
+
+    SOS_decomp = vQ0v
 
     # Add g_i * (v^T Qi v) terms
     for i, g in enumerate(g_list):
-        Qi_val = clean_value(Qi_list[i].value)
-        SOS_decomp = sp.Add(SOS_decomp, sp.Mul(g, (v.T * Qi_val * v)[0, 0], evaluate=False), evaluate=False)
+        Qi_sqrt = matrix_sqrt(Qi_list[i].value)
+        vQv_sqrt = Qi_sqrt.T @ v
+        vQv = clean_value((vQv_sqrt.T * vQv_sqrt)[0,0])
+        SOS_decomp = sp.Add(SOS_decomp, sp.Mul(g, vQv, evaluate=False), evaluate=False)
+        result.append(sp.Mul(g, vQv, evaluate=False))
 
     print("\nSOS decomposition of p(x) + λ:")
     print(SOS_decomp)
 
-    result.append((v.T * clean_value(Q0.value) * v)[0, 0])
-    for g_sym, Qi in zip(g_list, Qi_list):
-        result.append(g_sym * (v.T * clean_value(Qi.value) * v)[0,0])
+    # result.append((v.T * clean_value(Q0.value) * v)[0, 0])
+    # for g_sym, Qi in zip(g_list, Qi_list):
+    #     result.append(g_sym * (v.T * clean_value(Qi.value) * v)[0,0])
 
     return result, clean_value(lm_cp.value)
