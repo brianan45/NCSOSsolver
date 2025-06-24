@@ -11,13 +11,17 @@ def preprocess_monomials(expr_str):
     # Convert ^T to .T and add * if followed by a symbol
     expr_str = expr_str.replace('^T', '.T')
     expr_str = re.sub(r'\.T(?=\w)', '.T*', expr_str)
+    print(expr_str)
 
-    # Convert patterns like AB^* into A*Adjoint(B)
-    expr_str = re.sub(r'\b(\w+?)(\w)\^\*', r'\1*Adjoint(\2)', expr_str)
+    # 1. Convert every `X^*` into `Adjoint(X)`
+    expr_str = re.sub(r'(\w+)\^\*', r'Adjoint(\1)', expr_str)
+    
+    # 2. Insert * between Adjoint(...) and following variable, if needed
+    expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
 
     # If Adjoint(...) is followed immediately by a symbol/letter, add a *
     expr_str = re.sub(r'(Adjoint\(\w\))(?=\w)', r'\1*', expr_str)
-
+    print(expr_str)
     return expr_str
 
 def get_symbolic_matrices_and_monomial_vector():
