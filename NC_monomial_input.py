@@ -24,11 +24,12 @@ def preprocess_monomials(expr_str):
     print(expr_str)
     return expr_str
 
-def get_symbolic_matrices_and_monomial_vector():
+def get_vars_vec():
+    n = int(input("Enter the # of matrix rows and columns (matrix must be square): "))
     var_input = input("Enter the matrix variable names (comma-separated): ")
     var_names = [name.strip() for name in var_input.split(',')]
 
-    n = sp.symbols('n', integer=True)
+    # n = sp.symbols('n', integer=True)
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
 
     monomial_input = input("Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
@@ -49,17 +50,7 @@ def get_symbolic_matrices_and_monomial_vector():
             for expr in processed_monomials
         ]
         monomial_vector = sp.Matrix(monomial_exprs)
-        return matrices, monomial_vector
+        return n, matrices, monomial_vector
     except Exception as e:
         print("Error parsing monomial expressions:", e)
-        return matrices, sp.Matrix([])
-
-# Example usage
-matrices, monomial_vector = get_symbolic_matrices_and_monomial_vector()
-
-print("\nMatrix Variables:")
-for name, matrix in matrices.items():
-    print(f"{name} = {matrix}")
-
-print("\nMonomial Vector:")
-print(monomial_vector)
+        return n, matrices, sp.Matrix([])
