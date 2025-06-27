@@ -11,7 +11,7 @@ def preprocess_monomials(expr_str):
     # Convert ^T to .T and add * if followed by a symbol
     expr_str = expr_str.replace('^T', '.T')
     expr_str = re.sub(r'\.T(?=\w)', '.T*', expr_str)
-    print(expr_str)
+    # print(expr_str)
 
     # 1. Convert every `X^*` into `Adjoint(X)`
     expr_str = re.sub(r'(\w+)\^\*', r'Adjoint(\1)', expr_str)
@@ -21,16 +21,16 @@ def preprocess_monomials(expr_str):
 
     # If Adjoint(...) is followed immediately by a symbol/letter, add a *
     expr_str = re.sub(r'(Adjoint\(\w\))(?=\w)', r'\1*', expr_str)
-    print(expr_str)
+    # print(expr_str)
     return expr_str
 
 def get_vars_vec():
-    n = int(input("Enter the # of matrix rows and columns (matrix must be square): "))
     var_input = input("Enter the matrix variable names (comma-separated): ")
     var_names = [name.strip() for name in var_input.split(',')]
 
-    # n = sp.symbols('n', integer=True)
+    n = sp.symbols('n', integer=True)
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
+    v = {sp.MatrixSymbol(name, n, n) for name in var_names}
 
     monomial_input = input("Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
     raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
@@ -50,7 +50,7 @@ def get_vars_vec():
             for expr in processed_monomials
         ]
         monomial_vector = sp.Matrix(monomial_exprs)
-        return n, matrices, monomial_vector
+        return matrices, monomial_vector
     except Exception as e:
         print("Error parsing monomial expressions:", e)
-        return n, matrices, sp.Matrix([])
+        return sp.Matrix([]), matrices

@@ -34,7 +34,8 @@ def get_poly(variables):
     Returns:
         sympy.Expr: Parsed polynomial expression
     """
-    print("type(variables) =", type(variables))
+    # variables = {name: sp.MatrixSymbol(name, n, n) for name in v}
+    # print("type(variables) =", type(variables))
     poly_input = input(f"Enter a polynomial in terms of {', '.join(variables.keys())}: ")
     poly_input = preprocess_monomials(poly_input)
 

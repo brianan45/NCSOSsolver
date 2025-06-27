@@ -2,8 +2,8 @@ import sympy as sp
 import cvxpy as cp
 import numpy as np
 import sys
-from NCmonomial_input import get_vars_vec
-from NCpoly_input import get_poly
+from NC_monomial_input import get_vars_vec
+from NC_poly_input import get_poly
 from sp_to_cp_constraint import sp_to_cp_constraint
 from NCget_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
@@ -14,12 +14,17 @@ from clean_value import clean_value
 # and a set of constraints g(x)=0, and finds the SOS decomposition of
 # p(x) or the minimum lambda such that p(x) + lambda is an SOS
 
-n, v, vars = get_vars_vec()
+n, vars_dict, v = get_vars_vec()
 # print(v)
-# print(vars)
-m = v.rows
-lm_sp = sp.MatrixSymbol("lm_sp", m, m)
-p = get_poly(vars) + lm_sp
+# print("vars =", vars)
+vars = list(vars_dict.values())
+print("vars =", vars)
+print("type(vars) =", type(vars))
+print("type(A) =", type(vars[0]))
+m = v.shape[0]
+lm_sp = sp.Symbol("lm_sp")
+p = get_poly(vars_dict) + lm_sp * np.eye(n)
+print("type(p) =", type(p))
 # print(p)
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
@@ -33,11 +38,11 @@ Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{m
 poly_expr = v.T * Q_sym * v
 print(poly_expr)
 
-# Convert both to polynomials
-poly_expr_poly = sp.Poly(poly_expr, *vars)
-target_poly = sp.Poly(p, *vars)
+# # Convert both to polynomials
+# poly_expr_poly = sp.Poly(poly_expr, *vars)
+# target_poly = sp.Poly(p, *vars)
 
-sol = get_coeffs(poly_expr_poly,target_poly,vars)
+sol = get_coeffs(poly_expr,p,vars)
 # print("Solution:")
 # print(sol)
 
