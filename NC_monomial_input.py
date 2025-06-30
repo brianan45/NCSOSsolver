@@ -28,9 +28,9 @@ def get_vars_vec():
     var_input = input("Enter the matrix variable names (comma-separated): ")
     var_names = [name.strip() for name in var_input.split(',')]
 
-    n = sp.symbols('n', integer=True)
+    n = sp.Symbol('n', integer=True, positive=True)
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
-    v = {sp.MatrixSymbol(name, n, n) for name in var_names}
+    vars = {sp.MatrixSymbol(name, n, n) for name in var_names}
 
     monomial_input = input("Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
     raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
@@ -50,7 +50,7 @@ def get_vars_vec():
             for expr in processed_monomials
         ]
         monomial_vector = sp.Matrix(monomial_exprs)
-        return matrices, monomial_vector
+        return n, vars, monomial_vector
     except Exception as e:
         print("Error parsing monomial expressions:", e)
-        return sp.Matrix([]), matrices
+        return n, vars, matrices

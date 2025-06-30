@@ -14,18 +14,19 @@ from clean_value import clean_value
 # and a set of constraints g(x)=0, and finds the SOS decomposition of
 # p(x) or the minimum lambda such that p(x) + lambda is an SOS
 
-n, vars_dict, v = get_vars_vec()
+n, vars, v = get_vars_vec()
 # print(v)
 # print("vars =", vars)
-vars = list(vars_dict.values())
-print("vars =", vars)
-print("type(vars) =", type(vars))
-print("type(A) =", type(vars[0]))
+# print("vars =", vars)
+# print("type(vars) =", type(vars))
+# print("type(vars_elements) =", type(next(iter(vars))))
 m = v.shape[0]
 lm_sp = sp.Symbol("lm_sp")
-p = get_poly(vars_dict) + lm_sp * np.eye(n)
-print("type(p) =", type(p))
-# print(p)
+# p = get_poly(vars, n)
+# print("p =", p)
+# print("type(p) =", type(p))
+p = get_poly(vars, n) + lm_sp * sp.Identity(n)
+print("p =", p)
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q = cp.Variable((m, m), PSD=True)

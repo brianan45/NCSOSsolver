@@ -2,10 +2,10 @@ import sympy as sp
 import cvxpy as cp
 import numpy as np
 import sys
-from NCmonomial_input import get_monomial_vector
-from poly_input import get_polynomial_from_input
+from NCmonomial_input import get_vars_vec
+from NCpoly_input import get_poly
 from sp_to_cp_constraint_multiQ import sp_to_cp_constraint_multiQ
-from NCget_coeffs import get_coeffs
+from get_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
 from get_constraints import get_constraints
 from clean_value import clean_value
@@ -20,12 +20,12 @@ from is_feasible import is_feasible
 # solving for x with x-1 >= 0, -x-1 >= 0 (no feasible region) yields lambda = 0 rather than infeasible
 # solve x^2-100 s.t. x^2-50 >= 0 -> x^2-50; fix output to get Putinar form
 
-v, vars = get_monomial_vector()
+n, v, vars = get_vars_vec()
 # print(v)
 # print(vars)
 lm_sp = sp.Symbol("lm_sp")
-p = get_polynomial_from_input(vars) + lm_sp
-print("p(x)=",p)
+p = get_poly(vars) + lm_sp
+print("p =", p)
 g_list = get_constraints(vars)
 print("Constraints: ", g_list)
 m = v.rows
@@ -49,7 +49,6 @@ Qi_syms = [
     sp.Matrix(m, m, lambda i, j, k=k: sp.Symbol(f'q{k+1}_{min(i,j)}{max(i,j)}'))
     for k in range(len(g_list))
 ]
-
 print(Q0_sym)
 for m in Qi_syms:
     print(m)
@@ -61,7 +60,12 @@ for g_sym, Qi_sym in zip(g_list, Qi_syms):
     poly_expr += g_sym * (v.T * Qi_sym * v)[0, 0]
 print(poly_expr)
 
-sol = get_coeffs(poly_expr, p, vars)
+# Convert both to polynomials
+poly_expr_poly = sp.Poly(poly_expr, *vars)
+target_poly = sp.Poly(p, *vars)
+
+sol = get_coeffs(poly_expr_poly,target_poly,vars)
+print("Solution:")
 print(sol)
 
 if not sol:

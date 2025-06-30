@@ -24,7 +24,7 @@ def preprocess_monomials(expr_str):
     print("expr_str =", expr_str)
     return expr_str
 
-def get_poly(variables):
+def get_poly(vars, n):
     """
     Prompts the user to input a polynomial expression and parses it using sympy.
 
@@ -34,15 +34,16 @@ def get_poly(variables):
     Returns:
         sympy.Expr: Parsed polynomial expression
     """
-    # variables = {name: sp.MatrixSymbol(name, n, n) for name in v}
+    var_dict = {var.name: sp.MatrixSymbol(var.name, n, n) for var in vars}
+    print("var_dict =", var_dict)
     # print("type(variables) =", type(variables))
-    poly_input = input(f"Enter a polynomial in terms of {', '.join(variables.keys())}: ")
+    poly_input = input(f"Enter a polynomial in terms of {', '.join(str(v) for v in vars)}: ")
     poly_input = preprocess_monomials(poly_input)
 
     try:
-        polynomial = sp.sympify(poly_input, locals=variables)
+        polynomial = sp.sympify(poly_input, locals=var_dict)
         print("type(polynomial) =", type(polynomial))
-        if not polynomial.is_polynomial(*variables):
+        if not polynomial.is_polynomial(*var_dict):
             print("Warning: Input is not a valid polynomial.")
         return polynomial
     except Exception as e:
