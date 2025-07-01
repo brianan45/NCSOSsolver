@@ -1,57 +1,69 @@
 import sympy as sp
 
-def solve_matrix_coefficients(lhs, rhs, vars, unknowns=None):
-    """
-    Solves scalar coefficients in a symbolic matrix equation of the form:
-    lhs == rhs, where lhs and rhs are symbolic expressions involving
-    noncommutative matrix symbols.
 
-    Parameters:
-        lhs (sympy.Expr): Left-hand side of the expression.
-        rhs (sympy.Expr): Right-hand side of the expression.
-        vars (dict_values or iterable): The noncommutative variables present in the expression.
-        unknowns (list of sympy.Symbol, optional): Scalar unknowns to solve for.
+def is_matrix_factor(factor, matrix_vars):
+    """
+    Check if a factor is a matrix: matrix itself, transpose, adjoint, power, inverse, or Identity.
+    """
+    if isinstance(factor, sp.MatrixSymbol):
+        return factor in matrix_vars
+    if isinstance(factor, sp.MatPow):
+        return factor.base in matrix_vars
+    if isinstance(factor, sp.Transpose):
+        return factor.arg in matrix_vars
+    # if HAS_ADJOINT and isinstance(factor, Adjoint):
+    #     return factor.arg in matrix_vars
+    if isinstance(factor, sp.Identity):
+        return True   # ✅ Treat Identity as a matrix factor
+    return False
+
+
+def get_matrix_coeff_equations(expr, matrix_vars):
+    """
+    For an expression, extract scalar coefficients (i.e., terms not containing matrix_vars or their transforms),
+    and return equations setting each to zero.
+
+    Args:
+        expr (sympy.Expr): the expression
+        matrix_vars (list): list of matrix variables (MatrixSymbol)
 
     Returns:
-        dict: Solution mapping unknown symbols to values.
+        list of sympy.Eq objects
     """
-    # Convert dict_values to list if needed
-    vars_list = list(vars)
+    expr = sp.expand(expr)
+    terms = expr.as_ordered_terms()
 
-    # Move everything to one side
-    expr = sp.expand(lhs - rhs)
-
-    # Build equations: coefficient of each noncommutative variable == 0
     equations = []
-    for v in vars_list:
-        coeff = expr.coeff(v)
-        equations.append(sp.Eq(coeff, 0))
 
-    # Include constant term (no noncommutative part)
-    constant_term = expr
-    for v in vars_list:
-        constant_term = constant_term.subs(v, 0)
-    if constant_term != 0:
-        equations.append(sp.Eq(constant_term, 0))
+    for term in terms:
+        factors = term.as_ordered_factors()
 
-    # If unknowns aren't specified, use all commutative symbols in the expression
-    if unknowns is None:
-        unknowns = [s for s in expr.free_symbols if s.is_commutative]
+        scalar_part = sp.Integer(1)
 
-    # Solve the system
-    solution = sp.solve(equations, unknowns, dict=True)
+        for factor in factors:
+            if is_matrix_factor(factor, matrix_vars):
+                continue
+            else:
+                scalar_part *= factor
 
-    return solution[0] if solution else None
+        equations.append(sp.Eq(scalar_part, 0))
 
-x, y = sp.symbols('x y')
-AB, CD = sp.symbols('AB CD', commutative=False)
+    return equations
 
-lhs = x * AB + y * CD
-rhs = 2 * AB + 3 * CD
+A = sp.MatrixSymbol('A', 2, 2)
+B = sp.MatrixSymbol('B', 2, 2)
+q1, q2, q3, q4, q5, q6 = sp.symbols('q1 q2 q3 q4 q5 q6')
 
-# Simulate vars as dict_values
-vars_dict = {'AB': AB, 'CD': CD}
-vars = vars_dict.values()
+expr = (
+    q1 * A * B +
+    q2 * B.T * A +       # transpose
+    q3 * A**2 +          # power
+    # q4 * Adjoint(A) * B +       # conjugate transpose (Adjoint)
+    q5 * A**-1 +         # inverse
+    q6 * sp.Identity(2)  # identity matrix
+)
 
-sol = solve_matrix_coefficients(lhs, rhs, vars)
-print(sol)
+eqns = get_matrix_coeff_equations(expr, [A, B])
+
+for eq in eqns:
+    print(eq)

@@ -43,6 +43,7 @@ print(poly_expr)
 # poly_expr_poly = sp.Poly(poly_expr, *vars)
 # target_poly = sp.Poly(p, *vars)
 
+print("type(vars) =", type(vars))
 sol = get_coeffs(poly_expr,p,vars)
 # print("Solution:")
 # print(sol)
