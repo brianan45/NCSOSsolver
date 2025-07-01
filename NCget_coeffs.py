@@ -1,44 +1,62 @@
 import sympy as sp
+from sympy import Adjoint, MatrixSymbol, Identity, MatMul
 
-def get_coeffs(lhs, rhs, vars, unknowns=None):
+def is_matrix_factor(factor, matrix_vars):
     """
-    Solves scalar coefficients in a symbolic matrix equation of the form:
-    lhs == rhs, where lhs and rhs are symbolic expressions involving
-    noncommutative matrix symbols.
-
-    Parameters:
-        lhs (sympy.Expr): Left-hand side of the expression.
-        rhs (sympy.Expr): Right-hand side of the expression.
-        vars (dict_values or iterable): The noncommutative variables present in the expression.
-        unknowns (list of sympy.Symbol, optional): Scalar unknowns to solve for.
-
-    Returns:
-        dict: Solution mapping unknown symbols to values.
+    Check if a factor is a matrix: matrix itself, transpose, adjoint, power, inverse, or Identity.
     """
-    # Convert dict_values to list if needed
-    vars_list = list(vars)
+    if isinstance(factor, MatrixSymbol):
+        return factor in matrix_vars
+    if isinstance(factor, sp.MatPow):
+        return factor.base in matrix_vars
+    if isinstance(factor, sp.Transpose):
+        return factor.arg in matrix_vars
+    if isinstance(factor, Adjoint):
+        return factor.arg in matrix_vars
+    if isinstance(factor, Identity):
+        return True   # Treat Identity as a matrix factor
+    return False
 
-    # Move everything to one side
-    expr = sp.expand(lhs - rhs)
+def decompose_term(term, matrix_vars):
+    """
+    Splits a term into (scalar_part, matrix_part)
+    """
+    factors = term.as_ordered_factors()
+    scalar_part = sp.Integer(1)
+    matrix_factors = []
+    for factor in factors:
+        if is_matrix_factor(factor, matrix_vars):
+            matrix_factors.append(factor)
+        else:
+            scalar_part *= factor
 
-    # Build equations: coefficient of each noncommutative variable == 0
-    equations = []
-    for v in vars_list:
-        coeff = expr.coeff(v)
-        equations.append(sp.Eq(coeff, 0))
+    # If no matrix factors, matrix_part is 1 (scalar)
+    if matrix_factors:
+        matrix_part = MatMul(*matrix_factors)
+    else:
+        matrix_part = sp.Integer(1)
+    return scalar_part, matrix_part
 
-    # Include constant term (no noncommutative part)
-    constant_term = expr
-    for v in vars_list:
-        constant_term = constant_term.subs(v, 0)
-    if constant_term != 0:
-        equations.append(sp.Eq(constant_term, 0))
+def get_coeffs(expr, matrix_vars):
+    """
+    Groups by matrix part and returns equations setting scalar coeffs to zero.
+    """
+    expr = sp.expand(expr)
+    terms = expr.as_ordered_terms()
 
-    # If unknowns aren't specified, use all commutative symbols in the expression
-    if unknowns is None:
-        unknowns = [s for s in expr.free_symbols if s.is_commutative]
+    coeff_map = {}  # matrix_expr → scalar coefficient sum
 
-    # Solve the system
-    solution = sp.solve(equations, unknowns, dict=True)
+    for term in terms:
+        scalar, matrix = decompose_term(term, matrix_vars)
+        if matrix in coeff_map:
+            coeff_map[matrix] += scalar
+        else:
+            coeff_map[matrix] = scalar
 
-    return solution[0] if solution else None
+    # Remove trivial term if matrix part is 1 (scalar only term)
+    # Usually from constant term, but you can keep if needed
+    if sp.Integer(1) in coeff_map:
+        # For example, you might want to keep it or remove it
+        pass
+
+    return [sp.Eq(coeff, 0) for coeff in coeff_map.values()]
