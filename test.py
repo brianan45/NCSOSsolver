@@ -1,69 +1,41 @@
 import sympy as sp
-
+from sympy import MatrixSymbol
 
 def is_matrix_factor(factor, matrix_vars):
-    """
-    Check if a factor is a matrix: matrix itself, transpose, adjoint, power, inverse, or Identity.
-    """
-    if isinstance(factor, sp.MatrixSymbol):
+    # Check if factor is matrix or matrix power of a variable in matrix_vars
+    if isinstance(factor, MatrixSymbol):
         return factor in matrix_vars
     if isinstance(factor, sp.MatPow):
         return factor.base in matrix_vars
-    if isinstance(factor, sp.Transpose):
-        return factor.arg in matrix_vars
-    # if HAS_ADJOINT and isinstance(factor, Adjoint):
-    #     return factor.arg in matrix_vars
-    if isinstance(factor, sp.Identity):
-        return True   # ✅ Treat Identity as a matrix factor
     return False
 
+def extract_coefficient(expr, matrix_vars):
+    # Assume expr is a Mul or Pow or simple term involving matrices
+    # We want the scalar coefficient for the matrix part that includes any matrix var
 
-def get_matrix_coeff_equations(expr, matrix_vars):
-    """
-    For an expression, extract scalar coefficients (i.e., terms not containing matrix_vars or their transforms),
-    and return equations setting each to zero.
+    # For terms like -A**2, expr is Mul(-1, MatPow(A, 2))
 
-    Args:
-        expr (sympy.Expr): the expression
-        matrix_vars (list): list of matrix variables (MatrixSymbol)
+    factors = expr.as_ordered_factors()
+    scalar = sp.Integer(1)
+    matrix_factors = []
 
-    Returns:
-        list of sympy.Eq objects
-    """
-    expr = sp.expand(expr)
-    terms = expr.as_ordered_terms()
+    for f in factors:
+        if is_matrix_factor(f, matrix_vars):
+            matrix_factors.append(f)
+        else:
+            scalar *= f
 
-    equations = []
+    # Compose matrix part from matrix factors
+    matrix_part = sp.MatMul(*matrix_factors) if matrix_factors else sp.Integer(1)
 
-    for term in terms:
-        factors = term.as_ordered_factors()
+    return scalar, matrix_part
 
-        scalar_part = sp.Integer(1)
+# Example:
 
-        for factor in factors:
-            if is_matrix_factor(factor, matrix_vars):
-                continue
-            else:
-                scalar_part *= factor
+A = MatrixSymbol('A', 2, 2)
+expr = -A**2
 
-        equations.append(sp.Eq(scalar_part, 0))
+coeff, matrix_part = extract_coefficient(expr, [A])
 
-    return equations
-
-A = sp.MatrixSymbol('A', 2, 2)
-B = sp.MatrixSymbol('B', 2, 2)
-q1, q2, q3, q4, q5, q6 = sp.symbols('q1 q2 q3 q4 q5 q6')
-
-expr = (
-    q1 * A * B +
-    q2 * B.T * A +       # transpose
-    q3 * A**2 +          # power
-    # q4 * Adjoint(A) * B +       # conjugate transpose (Adjoint)
-    q5 * A**-1 +         # inverse
-    q6 * sp.Identity(2)  # identity matrix
-)
-
-eqns = get_matrix_coeff_equations(expr, [A, B])
-
-for eq in eqns:
-    print(eq)
+print("Coefficient:", coeff)          # Should print -1
+print("Matrix part:", matrix_part)   # Should print A**2

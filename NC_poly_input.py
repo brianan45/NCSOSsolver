@@ -2,6 +2,18 @@ import sympy as sp
 import re
 from monomial_input import get_monomial_vector
 
+from sympy.parsing.sympy_parser import (
+    parse_expr,
+    standard_transformations,
+    implicit_multiplication_application,
+    convert_xor
+)
+
+transformations = standard_transformations + (
+    implicit_multiplication_application,
+    convert_xor
+)
+
 # a function that, given a set of variables, accepts a
 # polynomial in those variables from user input
 
@@ -41,7 +53,7 @@ def get_poly(vars, n):
     poly_input = preprocess_monomials(poly_input)
 
     try:
-        polynomial = sp.sympify(poly_input, locals=var_dict)
+        polynomial = parse_expr(poly_input, local_dict=var_dict, transformations=transformations, evaluate=False)
         print("type(polynomial) =", type(polynomial))
         if not polynomial.is_polynomial(*var_dict):
             print("Warning: Input is not a valid polynomial.")

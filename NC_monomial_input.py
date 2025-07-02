@@ -11,17 +11,12 @@ def preprocess_monomials(expr_str):
     # Convert ^T to .T and add * if followed by a symbol
     expr_str = expr_str.replace('^T', '.T')
     expr_str = re.sub(r'\.T(?=\w)', '.T*', expr_str)
-    # print(expr_str)
 
-    # 1. Convert every `X^*` into `Adjoint(X)`
+    # Convert every `X^*` into `Adjoint(X)`
     expr_str = re.sub(r'(\w+)\^\*', r'Adjoint(\1)', expr_str)
-    
-    # 2. Insert * between Adjoint(...) and following variable, if needed
-    expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
 
-    # If Adjoint(...) is followed immediately by a symbol/letter, add a *
-    expr_str = re.sub(r'(Adjoint\(\w\))(?=\w)', r'\1*', expr_str)
-    # print(expr_str)
+    # Insert * between Adjoint(...) and following variable, if needed
+    expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
     return expr_str
 
 def get_vars_vec():
@@ -37,7 +32,8 @@ def get_vars_vec():
     processed_monomials = [preprocess_monomials(expr) for expr in raw_monomials]
 
     local_dict = matrices.copy()
-    local_dict['Adjoint'] = sp.Adjoint  # Use SymPy's Adjoint for conjugate transpose
+    local_dict['Adjoint'] = sp.Adjoint
+    local_dict['I'] = sp.Identity(n)  # Add the identity matrix as 'I'
 
     transformations = standard_transformations + (
         implicit_multiplication_application,

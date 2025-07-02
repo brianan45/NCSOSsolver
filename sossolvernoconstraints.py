@@ -38,8 +38,8 @@ poly_expr_poly = sp.Poly(poly_expr, *vars)
 target_poly = sp.Poly(p, *vars)
 
 sol = get_coeffs(poly_expr_poly,target_poly,vars)
-# print("Solution:")
-# print(sol)
+print("Solution:")
+print(sol)
 
 if not sol:
     print("No solution; try a different monomial vector")

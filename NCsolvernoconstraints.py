@@ -85,15 +85,17 @@ if problem.status == "infeasible":
 
 print("Q matrix:")
 print(clean_value(Q.value))
+print("type(Q.value) =", type(Q.value))
 
 print("\nLambda:")
 print(clean_value(lm_cp.value))
 
-Q_sqrt = matrix_sqrt(Q.value)
+Q_sqrt = sp.Matrix(matrix_sqrt(Q.value))
 print("type(Q_sqrt) =", type(Q_sqrt))
 print("Q_sqrt: ", clean_value(Q_sqrt))
 print("type(v) =", type(v))
 vQv_sqrt = Q_sqrt.T @ v
 sos_expr = clean_value((vQv_sqrt.T * vQv_sqrt)[0,0])
-print("\n SOS decomposition:")
+print("SOS decomposition:")
 print(sos_expr)
+
