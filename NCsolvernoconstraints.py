@@ -23,10 +23,11 @@ n, matrix_vars, v = get_vars_vec()
 # print("type(vars_elements) =", type(next(iter(vars))))
 m = v.shape[0]
 lm_sp = sp.Symbol("lm_sp")
-# p = get_poly(vars, n)
-# print("p =", p)
-# print("type(p) =", type(p))
-p = get_poly(matrix_vars, n) + lm_sp * sp.Identity(n)
+p = get_poly(matrix_vars, n)
+print("p =", p)
+print("type(p) =", type(p))
+# p = get_poly(matrix_vars, n) + lm_sp * sp.Identity(n)
+p += lm_sp * sp.Identity(n)
 print("p =", p)
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
@@ -38,9 +39,11 @@ Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{m
 
 # v^T * Q * v symbolic expansion
 v_adj = v.applyfunc(sp.Adjoint)
-poly_expr = (v_adj.T * Q_sym * v)[0, 0]  
-print("v*^TQv =", poly_expr)
-
+poly_expr = (v_adj.T * Q_sym * v)[0, 0]
+print("poly_expr before expansion =", poly_expr)
+# poly_expr = sum(Q_sym[i, j] * sp.Adjoint(v[i]) * v[j] for i in range(m) for j in range(m))
+poly_expr = sp.expand(poly_expr)  
+print("poly_expr after expansion =", poly_expr)
 # # Convert both to polynomials
 # poly_expr_poly = sp.Poly(poly_expr, *vars)
 # target_poly = sp.Poly(p, *vars)
@@ -48,11 +51,11 @@ print("v*^TQv =", poly_expr)
 print("type(vars) =", type(matrix_vars))
 print("poly_expr - p =", poly_expr - p)
 
-sol = get_coeffs(poly_expr - p, matrix_vars)
+sol = get_coeffs(sp.expand(poly_expr - p), matrix_vars)
 
 # Check for False anywhere in the solution list
 if any(isinstance(s, BooleanFalse) for s in sol):
-    print("Invalid solution; at least one term is not a valid equation.")
+    print("Problem is infeasible. Exiting.")
     sys.exit()
 
 

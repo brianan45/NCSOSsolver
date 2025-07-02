@@ -3,19 +3,20 @@ from sympy import Adjoint, MatrixSymbol, Identity, MatMul
 
 def is_matrix_factor(factor, matrix_vars):
     """
-    Check if a factor is a matrix: matrix itself, transpose, adjoint, power, inverse, or Identity.
+    Check if a factor is a matrix expression (including powers, adjoints, etc.)
     """
     if isinstance(factor, MatrixSymbol):
         return factor in matrix_vars
     if isinstance(factor, sp.MatPow):
-        return factor.base in matrix_vars
+        return is_matrix_factor(factor.base, matrix_vars)
     if isinstance(factor, sp.Transpose):
-        return factor.arg in matrix_vars
+        return is_matrix_factor(factor.arg, matrix_vars)
     if isinstance(factor, Adjoint):
-        return factor.arg in matrix_vars
+        return is_matrix_factor(factor.arg, matrix_vars)
     if isinstance(factor, Identity):
-        return True   # Treat Identity as a matrix factor
+        return True
     return False
+
 
 def decompose_term(term, matrix_vars):
     """
@@ -48,6 +49,8 @@ def get_coeffs(expr, matrix_vars):
 
     for term in terms:
         scalar, matrix = decompose_term(term, matrix_vars)
+        print("scalar =", scalar)
+        print("matrix =", matrix)
         if matrix in coeff_map:
             coeff_map[matrix] += scalar
         else:
