@@ -39,6 +39,7 @@ Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{m
 
 # v^T * Q * v symbolic expansion
 v_adj = v.applyfunc(sp.Adjoint)
+print("v_adj =", v_adj)
 poly_expr = (v_adj.T * Q_sym * v)[0, 0]
 print("poly_expr before expansion =", poly_expr)
 # poly_expr = sum(Q_sym[i, j] * sp.Adjoint(v[i]) * v[j] for i in range(m) for j in range(m))
