@@ -57,6 +57,7 @@ for m in Qi_syms:
 # Build the symbolic polynomial: v^T Q0 v + sum g_i * (v^T Qi v)
 poly_expr = (v.T * Q0_sym * v)[0, 0]
 for g_sym, Qi_sym in zip(g_list, Qi_syms):
+    print("type(g_sym) =", type(g_sym))
     poly_expr += g_sym * (v.T * Qi_sym * v)[0, 0]
 print(poly_expr)
 
