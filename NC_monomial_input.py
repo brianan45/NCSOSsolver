@@ -12,16 +12,16 @@ def preprocess_monomials(expr_str):
     expr_str = expr_str.replace('^T', '.T')
     expr_str = re.sub(r'\.T(?=\w)', '.T*', expr_str)
 
-    # Convert X^* into Adjoint(X)
-    expr_str = re.sub(r'(\w+)\^\*', r'Adjoint(\1)', expr_str)
+    # Convert X^* to X, since we assume Hermitian matrices
+    expr_str = re.sub(r'(\w+)\^\*', r'\1', expr_str)
 
-    # Insert * between Adjoint(...) and following variable
-    expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
+    # # Insert * between Adjoint(...) and following variable
+    # expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
 
     return expr_str
 
 def get_vars_vec():
-    var_input = input("Enter the matrix variable names (comma-separated): ")
+    var_input = input("Enter the matrix variable names (assumed to be Hermitian) (comma-separated): ")
     var_names = [name.strip() for name in var_input.split(',')]
 
     n = sp.Symbol('n', integer=True, positive=True)
