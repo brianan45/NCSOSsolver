@@ -27,7 +27,7 @@ def preprocess_monomials(expr_str):
     # expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
 
     # Convert X^3 to X**3
-    expr_str = re.sub(r'(\w+)\^(\d+)', r'\1**\2', expr_str)
+    expr_str = re.sub(r'(\b\w+)\^(\d+)', lambda m: '*'.join([m.group(1)] * int(m.group(2))), expr_str)
 
     # # Final adjoint check
     # expr_str = re.sub(r'(Adjoint\(\w\))(?=\w)', r'\1*', expr_str)
