@@ -71,19 +71,19 @@ for g_sym, Qi_sym in zip(g_list, Qi_syms):
     poly_expr += ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym # * (v_adj.T * Qi_sym * v)[0, 0]
     # poly_expr += (v_adj.T * Qi_sym * v)[0, 0] * g_sym
 
-print("poly_expr before expansion =", poly_expr)
+# print("poly_expr before expansion =", poly_expr)
 # poly_expr = sum(Q_sym[i, j] * sp.Adjoint(v[i]) * v[j] for i in range(m) for j in range(m))
 poly_expr = sp.expand(poly_expr)  
-print("poly_expr after expansion =", poly_expr)
+# print("poly_expr after expansion =", poly_expr)
 # # Convert both to polynomials
 # poly_expr_poly = sp.Poly(poly_expr, *vars)
 # target_poly = sp.Poly(p, *vars)
 
 # print("type(vars) =", type(matrix_vars))
-print("poly_expr - p =", poly_expr - p)
+# print("poly_expr - p =", poly_expr - p)
 
 sol = get_coeffs(sp.expand(poly_expr - p), matrix_vars)
-print("sol =", sol)
+# print("sol =", sol)
 
 # Check for False anywhere in the solution list
 if any(isinstance(s, BooleanFalse) for s in sol):
@@ -91,8 +91,8 @@ if any(isinstance(s, BooleanFalse) for s in sol):
     sys.exit()
 
 
-print("Solution:")
-print(sol)
+# print("Solution:")
+# print(sol)
 
 extra_subs = {lm_sp: lm_cp}
 
@@ -102,17 +102,17 @@ cvx_eqs = []
 #     cvx_eqs.append(sp_to_cp_constraint(eq, Q, extra_subs=extra_subs))
 
 for eq in sol:
-    print("eq =", eq)
+    # print("eq =", eq)
     cvx_eqs.append(sp_to_cp_constraint_multiQ(eq, [Q0] + Qi_list, extra_subs=extra_subs))
 
 cvx_eqs.append(lm_cp >= 0)
 
 # Print all converted CVXPY equations
-for e in cvx_eqs:
-    print(e)
+# for e in cvx_eqs:
+#     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve(solver=cp.CVXOPT)
+problem.solve(solver=cp.SCS, verbose=True)
 
 if problem.status == "infeasible":
     print("Problem is infeasible. Exiting.")
@@ -154,4 +154,10 @@ print("\nSOS decomposition:", SOS_decomp)
 # print(sos_expr)
 
 # P = AB+XB+AD-XD
+# A0B0 + A1B0 + A0B1 - A1B1
 # A^*-A,B^*-B,X^*-X,D^*-D,AA-I,BB-I,XX-I,DD-I,AB-BA,AD-DA,XD-DX,BD-DB,DB-BD,DX-XD,DA-AD,BA-BA,I-DD,I-XX,I-BB,I-AA,D-D^*,C-C^*,B-B^*,A-A^*
+# AB-BA=0
+# AA-I
+# AA(AB-BA) = AAAB-AABA
+# AA(AA-I) = AAAA-AA
+# AA-I,BB-I
