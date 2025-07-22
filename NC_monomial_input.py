@@ -26,7 +26,11 @@ def insert_multiplication(expr_str, var_names):
 
 def get_vars_vec():
     var_input = input("Enter the matrix variable names (assumed to be Hermitian) (comma-separated): ")
+    print("var_input =", var_input)
     var_names = [name.strip() for name in var_input.split(',')]
+    if "I" not in var_names:
+        var_names.append("I")
+    print("var_names =", var_names)
 
     n = sp.Symbol('n', integer=True, positive=True)
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
