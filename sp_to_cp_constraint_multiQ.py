@@ -19,7 +19,7 @@ def sp_to_cp_constraint_multiQ(eq, Q_list, extra_subs=None):
     if extra_subs is None:
         extra_subs = {}
 
-    pattern = re.compile(r'[qQ](\d+)_(\d+)(\d+)')
+    pattern = re.compile(r'[qQ](\d+)_(\d+)_(\d+)')
 
     sym_to_cvx = {}
 
@@ -34,7 +34,7 @@ def sp_to_cp_constraint_multiQ(eq, Q_list, extra_subs=None):
                     raise IndexError(f"Q index {q_idx} out of range.")
                 Q = Q_list[q_idx]
                 if i >= Q.shape[0] or j >= Q.shape[1]:
-                    raise IndexError(f"Index q{q_idx}_{i}{j} exceeds dimensions of Q{q_idx}.")
+                    raise IndexError(f"Index q{q_idx}_{i}_{j} exceeds dimensions of Q{q_idx}.")
                 sym_to_cvx[s] = Q[i, j]
             else:
                 raise ValueError(f"Unrecognized symbol format: {s}")
