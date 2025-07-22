@@ -2,7 +2,6 @@ import sympy as sp
 from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
-    implicit_multiplication_application,
     convert_xor
 )
 import re
@@ -14,11 +13,16 @@ def preprocess_monomials(expr_str):
 
     # Convert X^* to X, since we assume Hermitian matrices
     expr_str = re.sub(r'(\w+)\^\*', r'\1', expr_str)
-
-    # # Insert * between Adjoint(...) and following variable
-    # expr_str = re.sub(r'(Adjoint\(\w+\))(?=\w)', r'\1*', expr_str)
-
     return expr_str
+
+def insert_multiplication(expr_str, var_names):
+    # Ensure variables like A0, B0, etc. are not split (match longest first)
+    var_names = sorted(var_names, key=len, reverse=True)
+    pattern = '|'.join(re.escape(name) for name in var_names)
+
+    # Tokenize: split where variables meet (e.g., A0B0 → A0 * B0)
+    tokens = re.findall(pattern, expr_str)
+    return '*'.join(tokens)
 
 def get_vars_vec():
     var_input = input("Enter the matrix variable names (assumed to be Hermitian) (comma-separated): ")
@@ -30,23 +34,27 @@ def get_vars_vec():
 
     monomial_input = input("Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
     raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
-    processed_monomials = [preprocess_monomials(expr) for expr in raw_monomials]
+    print("raw_monomials =", raw_monomials)
+
+    processed_monomials = [
+        insert_multiplication(preprocess_monomials(expr), var_names)
+        for expr in raw_monomials
+    ]
+    print("processed_monomials =", processed_monomials)
 
     # Local dictionary for SymPy parsing
     local_dict = matrices.copy()
     local_dict['Adjoint'] = sp.Adjoint
     local_dict['I'] = sp.Identity(n)  # Allow identity matrix as 'I'
 
-    transformations = standard_transformations + (
-        implicit_multiplication_application,
-        convert_xor
-    )
+    transformations = standard_transformations + (convert_xor,)
 
     try:
         monomial_exprs = [
             parse_expr(expr, local_dict=local_dict, transformations=transformations, evaluate=False)
             for expr in processed_monomials
         ]
+        print("monomial_exprs =", monomial_exprs)
         monomial_vector = sp.Matrix(monomial_exprs)
         return n, vars, monomial_vector
     except Exception as e:
