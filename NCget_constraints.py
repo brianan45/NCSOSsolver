@@ -43,7 +43,7 @@ def get_constraints(vars, n):
                     expr_str,
                     local_dict=var_dict,
                     transformations=transformations,
-                    evaluate=False
+                    evaluate=True
                 )
                 constraints.append(expr)
             except Exception as e:
