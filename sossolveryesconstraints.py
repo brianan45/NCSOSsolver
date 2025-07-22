@@ -25,13 +25,13 @@ v, vars = get_monomial_vector()
 # print(vars)
 lm_sp = sp.Symbol("lm_sp")
 p = get_polynomial_from_input(vars) + lm_sp
-print("p(x)=",p)
+print("\np(x)=",p)
 g_list = get_constraints(vars)
-print("Constraints: ", g_list)
+print("\nConstraints: ", g_list)
 m = v.rows
 
 feasible = is_feasible(g_list,vars)
-print(feasible)
+# print(feasible)
 
 if not feasible:
     print("Problem has no feasible region")
@@ -40,34 +40,38 @@ if not feasible:
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q0 = cp.Variable((m, m), PSD=True)  # for main SOS
 Qi_list = [cp.Variable((m, m), PSD=True) for _ in g_list]  # one per constraint
-print(Qi_list)
+# print(Qi_list)
 lm_cp = cp.Variable(name="lm_cp")
 
 # Symbolic Q matrices for matching coefficients
-Q0_sym = sp.Matrix(m, m, lambda i, j: sp.Symbol(f'q0_{min(i,j)}{max(i,j)}'))
+Q0_sym = sp.Matrix(m, m, lambda i, j: sp.Symbol(f'q0_{min(i,j)}_{max(i,j)}'))
 Qi_syms = [
-    sp.Matrix(m, m, lambda i, j, k=k: sp.Symbol(f'q{k+1}_{min(i,j)}{max(i,j)}'))
+    sp.Matrix(m, m, lambda i, j, k=k: sp.Symbol(f'q{k+1}_{min(i,j)}_{max(i,j)}'))
     for k in range(len(g_list))
 ]
-print(Q0_sym)
-for m in Qi_syms:
-    print(m)
+# print(Q0_sym)
+# for m in Qi_syms:
+    # print(m)
 
 # v^T * Q * v symbolic expansion
 # Build the symbolic polynomial: v^T Q0 v + sum g_i * (v^T Qi v)
 poly_expr = (v.T * Q0_sym * v)[0, 0]
+# print("\nInitial poly_expr:", poly_expr)
 for g_sym, Qi_sym in zip(g_list, Qi_syms):
-    print("type(g_sym) =", type(g_sym))
+    # print("\ntype(g_sym) =", type(g_sym))
+    # print("\ng_sym * (v.T * Qi_sym * v) =", g_sym * (v.T * Qi_sym * v)[0, 0])
     poly_expr += g_sym * (v.T * Qi_sym * v)[0, 0]
-print(poly_expr)
+print("\npoly_expr =", poly_expr)
 
 # Convert both to polynomials
 poly_expr_poly = sp.Poly(poly_expr, *vars)
 target_poly = sp.Poly(p, *vars)
+# print("\npoly_expr_poly:", poly_expr_poly)
+# print("\ntarget_poly:", target_poly)
 
 sol = get_coeffs(poly_expr_poly,target_poly,vars)
-print("Solution:")
-print(sol)
+# print("Solution:")
+# print(sol)
 
 if not sol:
     print("No solution; try a different monomial vector")
@@ -83,11 +87,11 @@ for sym, expr in sol.items():
 cvx_eqs.append(lm_cp >= 0)
 
 # Print all converted CVXPY equations
-for e in cvx_eqs:
-    print(e)
+# for e in cvx_eqs:
+#     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve(solver=cp.SCS)
+problem.solve(solver=cp.SCS, verbose=True)
 print(problem.status)
 
 if problem.status != "optimal":
@@ -119,3 +123,7 @@ for i, g in enumerate(g_list):
 
 print("\nSOS decomposition of p(x) + λ:")
 print(SOS_decomp)
+
+# P = A0B0+A0B1+A1B0-A1B1
+# -P = -A0B0-A0B1-A1B0+A1B1
+# A0A1-A1A0,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1,B0B1-B1B0,1-A0^2,1-A1^2,1-B0^2,1-B1^2
