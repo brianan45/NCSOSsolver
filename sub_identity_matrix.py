@@ -1,4 +1,6 @@
 import sympy as sp
+from sympy import Add, Mul, Identity, MatMul, Symbol
+from sympy.matrices.expressions import MatPow, MatrixSymbol
 
 def get_matrix_exps(expr_list):
     """
@@ -17,10 +19,6 @@ def get_matrix_exps(expr_list):
 
     return result
 
-import sympy as sp
-from sympy import Add, Mul, Identity, MatMul, Symbol
-from sympy.matrices.expressions import MatPow, MatrixSymbol
-
 def sub_identity_matrix(expr, identity_powers):
     def simplify_power(base, exp):
         if base in identity_powers:
@@ -32,7 +30,7 @@ def sub_identity_matrix(expr, identity_powers):
         return base ** exp
 
     def simplify_term(term):
-        # Separate scalar and matrix parts
+    # Separate scalar and matrix parts
         if isinstance(term, Mul):
             scalar = sp.S.One
             matrix_factors = []
@@ -41,6 +39,8 @@ def sub_identity_matrix(expr, identity_powers):
                     scalar *= factor
                 elif isinstance(factor, MatPow):
                     matrix_factors.append(simplify_power(factor.base, factor.exp))
+                elif isinstance(factor, MatrixSymbol):
+                    matrix_factors.append(simplify_power(factor, 1))  # Treat as A**1
                 else:
                     matrix_factors.append(factor)
 
@@ -54,11 +54,15 @@ def sub_identity_matrix(expr, identity_powers):
         elif isinstance(term, MatPow):
             return simplify_power(term.base, term.exp)
 
+        elif isinstance(term, MatrixSymbol):
+            return simplify_power(term, 1)  # Handle standalone A, B, C
+
         elif term.is_commutative:
             return term
 
         else:
             return term
+
 
     # Handle sums
     if isinstance(expr, Add):
@@ -67,34 +71,3 @@ def sub_identity_matrix(expr, identity_powers):
 
     # Handle single product or term
     return simplify_term(expr)
-
-# import sympy as sp
-# from sympy import MatrixSymbol, symbols, Identity
-
-# # Step 1: Declare symbolic matrix size
-# n = symbols('n', integer=True, positive=True)
-
-# # Step 2: Declare symbolic matrix variables of size n×n
-# A = MatrixSymbol('A', n, n)
-# B = MatrixSymbol('B', n, n)
-
-# # Step 3: Declare scalar symbols
-# k, m = symbols('k m')
-
-# # Step 4: Build expression with explicit integer exponents
-# expr = k * A**5 * B**7 + m * A**3
-
-# # Step 5: Declare identity powers (known orders of matrices)
-# # e.g., A**3 = I, B**4 = I
-# identity_powers = {
-#     A: 3,
-#     B: 4
-# }
-
-# # Step 6: Simplify using sub_identity_matrix
-# simplified = sub_identity_matrix(expr, identity_powers)
-
-# # Step 7: Display result
-# print("Original expression:", expr)
-
-# print("\nSimplified expression:", simplified)
