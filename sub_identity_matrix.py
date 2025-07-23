@@ -1,20 +1,20 @@
 import sympy as sp
 
-def get_matrix_exps(var_powers, base_vars):
+def get_matrix_exps(expr_list):
     """
-    Works for scalar or matrix symbols raised to powers.
-    Returns a dict mapping base_vars to their exponents.
+    Takes a list of MatrixSymbols or power expressions like A**2,
+    and returns a dictionary mapping the base MatrixSymbol to its exponent.
     """
     result = {}
-    for base in base_vars:
-        # Search for matching power expression
-        exp = 0
-        for term in var_powers:
-            if isinstance(term, sp.Pow) and term.base == base:
-                exp += term.exp
-            elif term == base:
-                exp += 1
-        result[base] = exp
+    
+    for expr in expr_list:
+        if isinstance(expr, sp.MatrixSymbol):
+            result[expr] = result.get(expr, 0) + 1
+        elif isinstance(expr, sp.MatPow) and isinstance(expr.base, sp.MatrixSymbol):
+            result[expr.base] = result.get(expr.base, 0) + expr.exp
+        else:
+            raise ValueError("Each input must be a MatrixSymbol or a power of one (e.g., A or A**2)")
+
     return result
 
 import sympy as sp
@@ -66,12 +66,35 @@ def sub_identity_matrix(expr, identity_powers):
         return sp.Add(*simplified_terms)
 
     # Handle single product or term
-#     return simplify_term(expr)
-# A, B, C, D = [MatrixSymbol(name, 3, 3) for name in 'ABCD']
-# k, m, n = sp.symbols('k m n')
+    return simplify_term(expr)
 
-# expr = k * A**4 * B**2 + m*n * C**5 * D**3
-# identity_powers = {A: 3, B: 2, C: 4, D: 3}
+# import sympy as sp
+# from sympy import MatrixSymbol, symbols, Identity
 
+# # Step 1: Declare symbolic matrix size
+# n = symbols('n', integer=True, positive=True)
+
+# # Step 2: Declare symbolic matrix variables of size n×n
+# A = MatrixSymbol('A', n, n)
+# B = MatrixSymbol('B', n, n)
+
+# # Step 3: Declare scalar symbols
+# k, m = symbols('k m')
+
+# # Step 4: Build expression with explicit integer exponents
+# expr = k * A**5 * B**7 + m * A**3
+
+# # Step 5: Declare identity powers (known orders of matrices)
+# # e.g., A**3 = I, B**4 = I
+# identity_powers = {
+#     A: 3,
+#     B: 4
+# }
+
+# # Step 6: Simplify using sub_identity_matrix
 # simplified = sub_identity_matrix(expr, identity_powers)
-# print(simplified)
+
+# # Step 7: Display result
+# print("Original expression:", expr)
+
+# print("\nSimplified expression:", simplified)
