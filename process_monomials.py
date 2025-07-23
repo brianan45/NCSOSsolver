@@ -23,5 +23,5 @@ def process_monomials(expr_str):
     # Final adjoint check
     expr_str = re.sub(r'(Adjoint\(\w\))(?=\w)', r'\1*', expr_str)
 
-    print("expr_str =", expr_str)
+    # print("expr_str =", expr_str)
     return expr_str
