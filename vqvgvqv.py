@@ -1,16 +1,6 @@
 import sympy as sp
-from sympy.logic.boolalg import BooleanFalse
 from sympy import Mul
-import cvxpy as cp
-import numpy as np
-import sys
-from NC_monomial_input import get_vars_vec
-from NC_poly_input import get_poly
-from sp_to_cp_constraint_multiQ import sp_to_cp_constraint_multiQ
 from NCget_coeffs import get_coeffs
-from NCget_constraints import get_constraints
-from matrix_sqrt import matrix_sqrt
-from clean_value import clean_value
 from sub_identity_matrix import sub_identity_matrix, get_matrix_exps
 
 # An SOS solver that takes a set of variables, a vector v of
