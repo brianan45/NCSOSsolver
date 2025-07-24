@@ -12,6 +12,7 @@ from NCget_constraints import get_constraints
 from matrix_sqrt import matrix_sqrt
 from clean_value import clean_value
 from sub_identity_matrix import sub_identity_matrix, get_matrix_exps
+from vqvgvqv import vqvgvqv
 
 # An SOS solver that takes a set of variables, a vector v of
 # monomials in those variables, a polynomial p(x) in those variables,
@@ -90,17 +91,20 @@ sum_vQv = sp.expand(sum_vQv)
 matrix_exps = get_matrix_exps(I_list)
 print("matrix_exps =", matrix_exps)
 simplified = sub_identity_matrix(sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps),matrix_exps)
+# simplified = sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps)
 print("sum_vQv - p =", sp.expand(sum_vQv - p))
 print("simplified =", simplified)
 
-# sol = get_coeffs(sp.expand(poly_expr - p), matrix_vars)
 sol = get_coeffs(simplified, matrix_vars)
+# sol = get_coeffs(sp.expand(sum_vQv - p), matrix_vars)
 # print("sol =", sol)
 
 # Check for False anywhere in the solution list
 if any(isinstance(s, BooleanFalse) for s in sol):
-    print("Problem is infeasible. Exiting.")
-    sys.exit()
+    sol = vqvgvqv(v, matrix_vars, Q0_sym, g_list, I_list, Qi_syms)
+    if any(isinstance(s, BooleanFalse) for s in sol):
+        print("Problem is infeasible. Exiting.")
+        sys.exit()
 
 # print("Solution:")
 # print(sol)
@@ -124,19 +128,12 @@ cvx_eqs.append(lm_cp >= 0)
 #     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-mosek_params = {
-    "MSK_DPAR_INTPNT_TOL_PFEAS": 1e-1,  # default is ~1e-8
-    "MSK_DPAR_INTPNT_TOL_REL_GAP": 1e-1
-}
 problem.solve(solver=cp.SCS, verbose=True)
 
 if problem.status == "infeasible":
     print("Problem is infeasible. Exiting.")
     sys.exit()
 
-# print("Q matrix:")
-# print(clean_value(Q.value))
-# print("type(Q.value) =", type(Q.value))
 
 print("\nLambda:")
 print(clean_value(lm_cp.value))
@@ -178,6 +175,8 @@ print("\nSOS decomposition:", SOS_decomp)
 # Enter a polynomial in terms of B0, A1, I, B1, A0, Adjoint: -A0B0-A0B1-A1B0+A1B1
 # Enter >= 0 constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish): I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1,A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
 # Enter = I constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish): A0^2, A1^2, B0^2, B1^2
+# Lambda:
+# 2.828427091787953
 
 
 # TESTED, WORKING EXAMPLES
