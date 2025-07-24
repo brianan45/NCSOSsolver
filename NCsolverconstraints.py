@@ -22,6 +22,7 @@ n, matrix_vars, v = get_vars_vec()
 # print("v =",v)
 # print("type(v) =", type(v))
 # print("vars =", vars)
+print("matrix_vars =", matrix_vars)
 # print("type(vars) =", type(matrix_vars))
 # print("type(vars_elements) =", type(next(iter(matrix_vars))))
 m = v.shape[0]
@@ -33,6 +34,8 @@ p += lm_sp * sp.Identity(n)
 # print("p =", p)
 # print("type(p) =", type(p))
 g_list, I_list = get_constraints(matrix_vars, n)
+print("g_list =", g_list)
+print("I_list =", I_list) 
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q0 = cp.Variable((m, m), PSD=True)  # for main SOS
@@ -63,15 +66,19 @@ def reverse_monovec(expr_matrix):
             result[i, 0] = reversed_entry
     return result
 
-poly_expr = ((reverse_monovec(v)).T * Q0_sym * v)[0, 0]
+sum_vQv = ((reverse_monovec(v)).T * Q0_sym * v)[0, 0]
 for g_sym, Qi_sym in zip(g_list, Qi_syms):
-    # print("\n((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym =", ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym)
-    poly_expr += ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym  # * ((reverse_monovec(v)).T * Qi_sym * v)[0, 0]
+    print("\n((reverse_monovec(v)).T = ", reverse_monovec(v).T)
+    print("\ntype((reverse_monovec(v)).T * Q0_sym * v) =", type((reverse_monovec(v)).T * Qi_sym * v))
+    print("\ng_sym =", g_sym)
+    print("\ntype(g_sym) =", type(g_sym))
+    print("\n((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym =", ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym)
+    sum_vQv += ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym  # * ((reverse_monovec(v)).T * Qi_sym * v)[0, 0]
     # poly_expr += (v_adj.T * Qi_sym * v)[0, 0] * g_sym
 
 # print("poly_expr before expansion =", poly_expr)
 # poly_expr = sum(Q_sym[i, j] * sp.Adjoint(v[i]) * v[j] for i in range(m) for j in range(m))
-poly_expr = sp.expand(poly_expr)  
+sum_vQv = sp.expand(sum_vQv)  
 # print("poly_expr after expansion =", poly_expr)
 # # Convert both to polynomials
 # poly_expr_poly = sp.Poly(poly_expr, *vars)
@@ -80,9 +87,10 @@ poly_expr = sp.expand(poly_expr)
 # print("type(vars) =", type(matrix_vars))
 # print("poly_expr - p =", poly_expr - p)
 
-matrix_exps = get_matrix_exps(I_list, matrix_vars)
-simplified = sub_identity_matrix(sp.expand(poly_expr - p), matrix_exps)
-print("poly_expr - p =", sp.expand(poly_expr - p))
+matrix_exps = get_matrix_exps(I_list)
+print("matrix_exps =", matrix_exps)
+simplified = sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps)
+print("sum_vQv - p =", sp.expand(sum_vQv - p))
 print("simplified =", simplified)
 
 # sol = get_coeffs(sp.expand(poly_expr - p), matrix_vars)
@@ -139,20 +147,24 @@ SOS_decomp = vQ0v
 
 # Add g_i * (v^T Qi v) terms
 for i, g in enumerate(g_list):
-    print("Qi matrix:", clean_value(Qi_list[i].value))
-    Qi_sqrt = sp.Matrix(matrix_sqrt(Qi_list[i].value))
-    vQv_sqrt = Qi_sqrt.T @ v
-    vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
-    # print("vQv =", vQv)
-    # print("g =", g)
-    # print("sp.MatMul(vQv, g, evaluate=False) =", sp.MatMul(vQv, g, evaluate=False))
-    SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
+    if Qi_list[i].value != None:
+        print("Qi_list[i].value =", Qi_list[i].value)
+        print("type(Qi_list[i].value) =", type(Qi_list[i].value))
+        print("Qi matrix:", clean_value(Qi_list[i].value))
+        Qi_sqrt = sp.Matrix(matrix_sqrt(Qi_list[i].value))
+        vQv_sqrt = Qi_sqrt.T @ v
+        vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
+        # print("vQv =", vQv)
+        # print("g =", g)
+        # print("sp.MatMul(vQv, g, evaluate=False) =", sp.MatMul(vQv, g, evaluate=False))
+        SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
 
 print("\nSOS decomposition:", SOS_decomp)
 
 # CHSH PROBLEM
 # p = -A0B0-A0B1-A1B0+A1B1
 # g_i = I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1
+# A0^2, A1^2, B0^2, B1^2
 
 # lm - X^2 S.T. X^2-1=0, LM = 1
 # LM - X^2 - Y^2 S.T. X^2-1=0,Y^2-1=0, SHOULD GET LM = 2
