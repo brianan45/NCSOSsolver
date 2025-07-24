@@ -68,11 +68,11 @@ def reverse_monovec(expr_matrix):
 
 sum_vQv = ((reverse_monovec(v)).T * Q0_sym * v)[0, 0]
 for g_sym, Qi_sym in zip(g_list, Qi_syms):
-    print("\n((reverse_monovec(v)).T = ", reverse_monovec(v).T)
-    print("\ntype((reverse_monovec(v)).T * Q0_sym * v) =", type((reverse_monovec(v)).T * Qi_sym * v))
-    print("\ng_sym =", g_sym)
-    print("\ntype(g_sym) =", type(g_sym))
-    print("\n((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym =", ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym)
+    # print("\n((reverse_monovec(v)).T = ", reverse_monovec(v).T)
+    # print("\ntype((reverse_monovec(v)).T * Q0_sym * v) =", type((reverse_monovec(v)).T * Qi_sym * v))
+    # print("\ng_sym =", g_sym)
+    # print("\ntype(g_sym) =", type(g_sym))
+    # print("\n((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym =", ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym)
     sum_vQv += ((reverse_monovec(v)).T * Qi_sym * v)[0, 0] * g_sym  # * ((reverse_monovec(v)).T * Qi_sym * v)[0, 0]
     # poly_expr += (v_adj.T * Qi_sym * v)[0, 0] * g_sym
 
@@ -89,7 +89,7 @@ sum_vQv = sp.expand(sum_vQv)
 
 matrix_exps = get_matrix_exps(I_list)
 print("matrix_exps =", matrix_exps)
-simplified = sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps)
+simplified = sub_identity_matrix(sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps),matrix_exps)
 print("sum_vQv - p =", sp.expand(sum_vQv - p))
 print("simplified =", simplified)
 
@@ -124,6 +124,10 @@ cvx_eqs.append(lm_cp >= 0)
 #     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
+mosek_params = {
+    "MSK_DPAR_INTPNT_TOL_PFEAS": 1e-1,  # default is ~1e-8
+    "MSK_DPAR_INTPNT_TOL_REL_GAP": 1e-1
+}
 problem.solve(solver=cp.SCS, verbose=True)
 
 if problem.status == "infeasible":
@@ -147,7 +151,7 @@ SOS_decomp = vQ0v
 
 # Add g_i * (v^T Qi v) terms
 for i, g in enumerate(g_list):
-    if Qi_list[i].value != None:
+    if Qi_list[i].value is not None:
         print("Qi_list[i].value =", Qi_list[i].value)
         print("type(Qi_list[i].value) =", type(Qi_list[i].value))
         print("Qi matrix:", clean_value(Qi_list[i].value))
@@ -165,17 +169,27 @@ print("\nSOS decomposition:", SOS_decomp)
 # p = -A0B0-A0B1-A1B0+A1B1
 # g_i = I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1
 # A0^2, A1^2, B0^2, B1^2
+# g_i = A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
 
+# WORKING CHSH EXAMPLE
+# Enter the matrix variable names (assumed to be Hermitian) (comma-separated): A0,A1,B0,B1
+# Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): A0,A1,B0,B1,I
+# matrix_vars = {B0, A1, I, B1, A0}
+# Enter a polynomial in terms of B0, A1, I, B1, A0, Adjoint: -A0B0-A0B1-A1B0+A1B1
+# Enter >= 0 constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish): I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1,A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
+# Enter = I constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish): A0^2, A1^2, B0^2, B1^2
+
+
+# TESTED, WORKING EXAMPLES
 # lm - X^2 S.T. X^2-1=0, LM = 1
 # LM - X^2 - Y^2 S.T. X^2-1=0,Y^2-1=0, SHOULD GET LM = 2
 # P = (1+X)^2 + (1-Y)^2 S.T. X^2-1=0,Y^2-1=0
+# TRY TRIVIAL EXAMPLES OF THE FORM P = (1-X)^2 + (1-Y)^2 + ... (A HUGE SOS)
+# (FIRST WITH NO CONSTRAINTS, THEN ADD CONSTRAINTS)
+# TRY THE SUBSTITUTION OPTIMIZATION, EX: IF X^2=1, REPLACE INSTANCES OF X^2 WITH 1
 
 # ASSERT N >= 2 FOR THE SIZE OF INPUT MATRICES
 
-# TRY TRIVIAL EXAMPLES OF THE FORM P = (1-X)^2 + (1-Y)^2 + ... (A HUGE SOS)
-# (FIRST WITH NO CONSTRAINTS, THEN ADD CONSTRAINTS)
-
-# TRY THE SUBSTITUTION OPTIMIZATION, EX: IF X^2=1, REPLACE INSTANCES OF X^2 WITH 1
 # CHECK MONIQUE LAURENT FOR HOW TO HANDLE EACH CONSTRAINT
 # TRY >= AND =< (to represent equality) CONSTRAINTS AGAIN
 # TRY INCREASING THE TOLERANCE
