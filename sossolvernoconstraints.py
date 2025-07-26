@@ -31,15 +31,15 @@ Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{m
 
 # v^T * Q * v symbolic expansion
 poly_expr = ((v.T * Q_sym * v)[0, 0]).expand()
-print(poly_expr)
+# print(poly_expr)
 
 # Convert both to polynomials
 poly_expr_poly = sp.Poly(poly_expr, *vars)
 target_poly = sp.Poly(p, *vars)
 
 sol = get_coeffs(poly_expr_poly,target_poly,vars)
-print("Solution:")
-print(sol)
+# print("Solution:")
+# print(sol)
 
 if not sol:
     print("No solution; try a different monomial vector")
@@ -55,8 +55,8 @@ for sym, expr in sol.items():
 cvx_eqs.append(lm_cp >= 0)
 
 # Print all converted CVXPY equations
-for e in cvx_eqs:
-    print(e)
+# for e in cvx_eqs:
+#     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
 problem.solve(solver=cp.CVXOPT)
