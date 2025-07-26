@@ -1,6 +1,6 @@
 import sympy as sp
 from sympy.logic.boolalg import BooleanFalse
-from sympy import Mul
+from sympy import Mul, S
 import cvxpy as cp
 import numpy as np
 import sys
@@ -23,7 +23,7 @@ n, matrix_vars, v = get_vars_vec()
 # print("v =",v)
 # print("type(v) =", type(v))
 # print("vars =", vars)
-print("matrix_vars =", matrix_vars)
+# print("matrix_vars =", matrix_vars)
 # print("type(vars) =", type(matrix_vars))
 # print("type(vars_elements) =", type(next(iter(matrix_vars))))
 m = v.shape[0]
@@ -35,8 +35,8 @@ p += lm_sp * sp.Identity(n)
 # print("p =", p)
 # print("type(p) =", type(p))
 g_list, I_list = get_constraints(matrix_vars, n)
-print("g_list =", g_list)
-print("I_list =", I_list) 
+# print("g_list =", g_list)
+# print("I_list =", I_list) 
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q0 = cp.Variable((m, m), PSD=True)  # for main SOS
@@ -89,11 +89,11 @@ sum_vQv = sp.expand(sum_vQv)
 # print("poly_expr - p =", poly_expr - p)
 
 matrix_exps = get_matrix_exps(I_list)
-print("matrix_exps =", matrix_exps)
+# print("matrix_exps =", matrix_exps)
 simplified = sub_identity_matrix(sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps),matrix_exps)
 # simplified = sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps)
-print("sum_vQv - p =", sp.expand(sum_vQv - p))
-print("simplified =", simplified)
+# print("sum_vQv - p =", sp.expand(sum_vQv - p))
+# print("simplified =", simplified)
 
 sol = get_coeffs(simplified, matrix_vars)
 # sol = get_coeffs(sp.expand(sum_vQv - p), matrix_vars)
@@ -138,29 +138,36 @@ if problem.status == "infeasible":
 print("\nLambda:")
 print(clean_value(lm_cp.value))
 
-print("Q0 matrix =", clean_value(Q0.value))
+# print("Q0 matrix =", clean_value(Q0.value))
 Q0_sqrt = sp.Matrix(matrix_sqrt(clean_value(Q0.value)))
 vQ0v_sqrt = Q0_sqrt.T @ v
 # print("vQ0v_sqrt:", (vQ0v_sqrt))
 vQ0v = (clean_value(sp.Adjoint(vQ0v_sqrt) * vQ0v_sqrt)[0,0])
 
 SOS_decomp = vQ0v
+# SOS_decomp_expanded = sp.expand(SOS_decomp)
 
 # Add g_i * (v^T Qi v) terms
+def simplify_zero(expr):
+    if isinstance(expr, Mul) and 0 in expr.args:
+        return S.Zero
+    return expr
+
 for i, g in enumerate(g_list):
     if Qi_list[i].value is not None:
-        print("Qi_list[i].value =", Qi_list[i].value)
-        print("type(Qi_list[i].value) =", type(Qi_list[i].value))
-        print("Qi matrix:", clean_value(Qi_list[i].value))
+        # print("Qi_list[i].value =", Qi_list[i].value)
+        # print("type(Qi_list[i].value) =", type(Qi_list[i].value))
+        # print("Qi matrix:", clean_value(Qi_list[i].value))
         Qi_sqrt = sp.Matrix(matrix_sqrt(Qi_list[i].value))
-        vQv_sqrt = Qi_sqrt.T @ v
+        vQv_sqrt = (Qi_sqrt.T @ v)
         vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
         # print("vQv =", vQv)
         # print("g =", g)
         # print("sp.MatMul(vQv, g, evaluate=False) =", sp.MatMul(vQv, g, evaluate=False))
         SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
-
-print("\nSOS decomposition:", SOS_decomp)
+        # SOS_decomp_expanded = sp.Add(SOS_decomp_expanded, sp.MatMul(vQv, g, evaluate=True), evaluate=True)
+print("\nSOS decomposition:", simplify_zero(SOS_decomp))
+# print("\nSOS decomposition expanded:", SOS_decomp_expanded)
 
 # CHSH PROBLEM
 # p = -A0B0-A0B1-A1B0+A1B1
