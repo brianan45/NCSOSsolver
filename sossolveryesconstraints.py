@@ -25,9 +25,9 @@ v, vars = get_monomial_vector()
 # print(vars)
 lm_sp = sp.Symbol("lm_sp")
 p = get_polynomial_from_input(vars) + lm_sp
-print("\np(x)=",p)
+# print("\np(x)=",p)
 g_list = get_constraints(vars)
-print("\nConstraints: ", g_list)
+# print("\nConstraints: ", g_list)
 m = v.rows
 
 feasible = is_feasible(g_list,vars)
@@ -61,7 +61,7 @@ for g_sym, Qi_sym in zip(g_list, Qi_syms):
     # print("\ntype(g_sym) =", type(g_sym))
     # print("\ng_sym * (v.T * Qi_sym * v) =", g_sym * (v.T * Qi_sym * v)[0, 0])
     poly_expr += g_sym * (v.T * Qi_sym * v)[0, 0]
-print("\npoly_expr =", poly_expr)
+# print("\npoly_expr =", poly_expr)
 
 # Convert both to polynomials
 poly_expr_poly = sp.Poly(poly_expr, *vars)
