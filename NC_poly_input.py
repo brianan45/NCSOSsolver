@@ -59,8 +59,8 @@ def get_poly(variables, n):
 
     try:
         polynomial = sp.sympify(poly_input, locals=var_dict)
-        if not polynomial.is_polynomial(*variables):
-            print("Warning: Input is not a valid polynomial.")
+        # if not polynomial.is_polynomial(*variables):
+        #     print("Warning: Input is not a valid polynomial.")
         return polynomial
     except Exception as e:
         print("Error parsing polynomial:", e)
