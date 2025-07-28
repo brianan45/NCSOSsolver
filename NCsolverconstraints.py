@@ -129,7 +129,7 @@ cvx_eqs.append(lm_cp >= 0)
 #     print(e)
 
 problem = cp.Problem(cp.Minimize(lm_cp),cvx_eqs)
-problem.solve(solver=cp.SCS, verbose=True)
+problem.solve(solver=cp.SCS)
 
 if problem.status == "infeasible":
     print("Problem is infeasible. Exiting.")
