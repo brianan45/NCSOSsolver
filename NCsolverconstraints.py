@@ -30,6 +30,7 @@ m = v.shape[0]
 lm_sp = sp.Symbol("lm_sp")
 # p = get_poly(matrix_vars, n)
 p = get_poly(matrix_vars, n)
+p = -p
 p += lm_sp * sp.Identity(n)
 # p += lm_sp * sp.Identity(n)
 # print("p =", p)
@@ -101,7 +102,7 @@ sol = get_coeffs(simplified, matrix_vars)
 
 # Check for False anywhere in the solution list
 if any(isinstance(s, BooleanFalse) for s in sol):
-    sol = vqvgvqv(v, matrix_vars, Q0_sym, g_list, I_list, Qi_syms)
+    sol = vqvgvqv(p, v, matrix_vars, Q0_sym, g_list, I_list, Qi_syms)
     if any(isinstance(s, BooleanFalse) for s in sol):
         print("Problem is infeasible. Exiting.")
         sys.exit()
