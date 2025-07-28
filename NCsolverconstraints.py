@@ -139,7 +139,7 @@ if problem.status == "infeasible":
 print("\nLambda:")
 print(clean_value(lm_cp.value))
 
-# print("Q0 matrix =", clean_value(Q0.value))
+print("Q0 matrix =", clean_value(Q0.value))
 Q0_sqrt = sp.Matrix(matrix_sqrt(clean_value(Q0.value)))
 vQ0v_sqrt = Q0_sqrt.T @ v
 # print("vQ0v_sqrt:", (vQ0v_sqrt))
@@ -158,7 +158,7 @@ for i, g in enumerate(g_list):
     if Qi_list[i].value is not None:
         # print("Qi_list[i].value =", Qi_list[i].value)
         # print("type(Qi_list[i].value) =", type(Qi_list[i].value))
-        # print("Qi matrix:", clean_value(Qi_list[i].value))
+        print("Qi matrix:", clean_value(Qi_list[i].value))
         Qi_sqrt = sp.Matrix(matrix_sqrt(Qi_list[i].value))
         vQv_sqrt = (Qi_sqrt.T @ v)
         vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
@@ -171,7 +171,8 @@ print("\nSOS decomposition:", simplify_zero(SOS_decomp))
 # print("\nSOS decomposition expanded:", SOS_decomp_expanded)
 
 # CHSH PROBLEM
-# p = -A0B0-A0B1-A1B0+A1B1
+# p = A0B0+A0B1+A1B1-A1B1
+# -p = -A0B0-A0B1-A1B0+A1B1
 # g_i = I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1
 # A0^2, A1^2, B0^2, B1^2
 # g_i = A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
