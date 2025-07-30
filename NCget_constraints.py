@@ -19,9 +19,6 @@ def get_constraints(vars, n):
     constraintsI = []
     # print([var.name for var in vars])
     var_dict = {var.name: sp.MatrixSymbol(var.name, n, n) for var in vars}
-    print("type(var.name) =", type(next(iter(var_dict.keys()))))
-    print("var_dict =", var_dict)
-    print("type(var_dict(values)) =", type(next(iter(var_dict.values()))))
     # for name, symbol in var_dict.items():
     #     print(f"{name}: is_commutative = {symbol.is_commutative}")
     var_dict["Adjoint"] = sp.Adjoint
@@ -35,7 +32,7 @@ def get_constraints(vars, n):
 
     for expr_str in exprs:
         expr_str = process_monomials(expr_str)
-        print(f"Processing constraint: {expr_str}")
+        # print(f"Processing constraint: {expr_str}")
 
         try:
         #     # g = sp.sympify(expr, locals=var_dict)
@@ -46,7 +43,7 @@ def get_constraints(vars, n):
         #         evaluate=True
         #     )
             expr = add_mult(expr_str, var_dict)
-            print(f"Parsed constraint: {expr}")
+            # print(f"Parsed constraint: {expr}")
 
             constraints.append(expr)
         except Exception as e:
