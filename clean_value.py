@@ -12,9 +12,8 @@ def clean_value(val, zero_tol=1e-2, int_tol=1e-2):
         if is_near_zero(x):
             return 0
         elif is_near_int(x):
-            return round(x)
-        return x
-
+            return float(round(x))
+        return round(x,2)
     # SymPy scalar
     if isinstance(val, sp.Basic):
         return val.replace(
