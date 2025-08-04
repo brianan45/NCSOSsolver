@@ -26,11 +26,9 @@ def insert_multiplication(expr_str, var_names):
 
 def get_vars_vec():
     var_input = input("Enter the matrix variable names (assumed to be Hermitian) (comma-separated): ")
-    # print("var_input =", var_input)
     var_names = [name.strip() for name in var_input.split(',')]
     if "I" not in var_names:
         var_names.append("I")
-    # print("var_names =", var_names)
 
     n = sp.Symbol('n', integer=True, positive=True)
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
@@ -38,13 +36,11 @@ def get_vars_vec():
 
     monomial_input = input("Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
     raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
-    # print("raw_monomials =", raw_monomials)
 
     processed_monomials = [
         insert_multiplication(preprocess_monomials(expr), var_names)
         for expr in raw_monomials
     ]
-    # print("processed_monomials =", processed_monomials)
 
     # Local dictionary for SymPy parsing
     local_dict = matrices.copy()
@@ -58,7 +54,6 @@ def get_vars_vec():
             parse_expr(expr, local_dict=local_dict, transformations=transformations, evaluate=False)
             for expr in processed_monomials
         ]
-        # print("monomial_exprs =", monomial_exprs)
         monomial_vector = sp.Matrix(monomial_exprs)
         return n, vars, monomial_vector
     except Exception as e:
