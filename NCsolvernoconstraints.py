@@ -3,8 +3,8 @@ from sympy.logic.boolalg import BooleanFalse
 import cvxpy as cp
 import numpy as np
 import sys
-from NC_monomial_input import get_vars_vec
-from NC_poly_input import get_poly
+from NCmonomial_input import get_vars_vec
+from NCpoly_input import get_poly
 from sp_to_cp_constraint import sp_to_cp_constraint
 from NCget_coeffs import get_coeffs
 from matrix_sqrt import matrix_sqrt
@@ -24,11 +24,11 @@ n, matrix_vars, v = get_vars_vec()
 m = v.shape[0]
 lm_sp = sp.Symbol("lm_sp")
 p = get_poly(matrix_vars, n)
-print("p =", p)
-print("type(p) =", type(p))
+# print("p =", p)
+# print("type(p) =", type(p))
 # p = get_poly(matrix_vars, n) + lm_sp * sp.Identity(n)
 p += lm_sp * sp.Identity(n)
-print("p =", p)
+# print("p =", p)
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q = cp.Variable((m, m), PSD=True)
@@ -39,18 +39,18 @@ Q_sym = sp.Matrix(Q.shape[0], Q.shape[1], lambda i, j: sp.Symbol(f'q{min(i,j)}{m
 
 # v^T * Q * v symbolic expansion
 v_adj = v.applyfunc(sp.Adjoint)
-print("v_adj =", v_adj)
+# print("v_adj =", v_adj)
 poly_expr = (v_adj.T * Q_sym * v)[0, 0]
-print("poly_expr before expansion =", poly_expr)
+# print("poly_expr before expansion =", poly_expr)
 # poly_expr = sum(Q_sym[i, j] * sp.Adjoint(v[i]) * v[j] for i in range(m) for j in range(m))
 poly_expr = sp.expand(poly_expr)  
-print("poly_expr after expansion =", poly_expr)
+# print("poly_expr after expansion =", poly_expr)
 # # Convert both to polynomials
 # poly_expr_poly = sp.Poly(poly_expr, *vars)
 # target_poly = sp.Poly(p, *vars)
 
-print("type(vars) =", type(matrix_vars))
-print("poly_expr - p =", poly_expr - p)
+# print("type(vars) =", type(matrix_vars))
+# print("poly_expr - p =", poly_expr - p)
 
 sol = get_coeffs(sp.expand(poly_expr - p), matrix_vars)
 
@@ -60,8 +60,8 @@ if any(isinstance(s, BooleanFalse) for s in sol):
     sys.exit()
 
 
-print("Solution:")
-print(sol)
+# print("Solution:")
+# print(sol)
 
 extra_subs = {lm_sp: lm_cp}
 
@@ -89,15 +89,15 @@ if problem.status == "infeasible":
 
 print("Q matrix:")
 print(clean_value(Q.value))
-print("type(Q.value) =", type(Q.value))
+# print("type(Q.value) =", type(Q.value))
 
 print("\nLambda:")
 print(clean_value(lm_cp.value))
 
 Q_sqrt = sp.Matrix(matrix_sqrt(Q.value))
-print("type(Q_sqrt) =", type(Q_sqrt))
-print("Q_sqrt: ", clean_value(Q_sqrt))
-print("type(v) =", type(v))
+# print("type(Q_sqrt) =", type(Q_sqrt))
+# print("Q_sqrt: ", clean_value(Q_sqrt))
+# print("type(v) =", type(v))
 vQv_sqrt = Q_sqrt.T @ v
 sos_expr = clean_value((vQv_sqrt.T * vQv_sqrt)[0,0])
 print("SOS decomposition:")
