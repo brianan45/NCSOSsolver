@@ -13,6 +13,7 @@ from matrix_sqrt import matrix_sqrt
 from clean_value import clean_value
 from sub_identity_matrix import sub_identity_matrix, get_matrix_exps
 from vqvgvqv import vqvgvqv
+from remove_zero_terms import remove_zero_terms
 
 # An SOS solver that takes a set of variables, a vector v of
 # monomials in those variables, a polynomial p(x) in those variables,
@@ -106,13 +107,18 @@ for i, g in enumerate(g_list):
         vQv_sqrt = (Qi_sqrt.T @ v)
         vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
         SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
-print("\nSOS decomposition:", simplify_zero(SOS_decomp))
+print("\nSOS decomposition:", remove_zero_terms(SOS_decomp))
 
 # WORKING CHSH EXAMPLE
-# Enter the matrix variable names (assumed to be Hermitian) (comma-separated): A0,A1,B0,B1
-# Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): A0,A1,B0,B1,I
-# Enter a polynomial in terms of B0, A1, I, B1, A0, Adjoint: A0B0+A0B1+A1B0-A1B1
-# Enter >= 0 constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish): I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1,A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
-# Enter = I constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish): A0^2, A1^2, B0^2, B1^2
+# Enter the matrix variable names (assumed to be Hermitian) (comma-separated):
+# A0,A1,B0,B1
+# Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B):
+# A0,A1,B0,B1,I
+# Enter a polynomial in terms of B0, A1, I, B1, A0, Adjoint:
+# A0B0+A0B1+A1B0-A1B1
+# Enter >= 0 constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish):
+# I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1,A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
+# Enter = I constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish):
+# A0^2, A1^2, B0^2, B1^2
 # Lambda:
 # 2.828427091787953
