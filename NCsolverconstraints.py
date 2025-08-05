@@ -107,7 +107,9 @@ for i, g in enumerate(g_list):
         vQv_sqrt = (Qi_sqrt.T @ v)
         vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
         SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
-print("\nSOS decomposition:", remove_zero_terms(SOS_decomp))
+SOS_decomp = remove_zero_terms(SOS_decomp)
+# print("\nSOS decomposition:", remove_zero_terms(SOS_decomp))
+print("\nSOS decomposition:", str(SOS_decomp).replace("Adjoint", "Adj"))
 
 # WORKING CHSH EXAMPLE
 # Enter the matrix variable names (assumed to be Hermitian) (comma-separated):
