@@ -40,6 +40,8 @@ Qi_syms = [
     for k in range(len(g_list))
 ]
 
+# A function that takes a vector whose entries are matrices or matrix products and reverses
+# the order of matrix multiplication (ex.: v = [AB, CD] → reverse_monovec(v) = [BA, DC])
 def reverse_monovec(expr_matrix):
     result = expr_matrix.copy()
     for i in range(expr_matrix.rows):
@@ -55,9 +57,14 @@ for g_sym, Qi_sym in zip(g_list, Qi_syms):
 
 sum_vQv = sp.expand(sum_vQv)  
 
+# Get a dictionary of matrix variables and their exponents that yield the
+# identity matrix (ex.: I_list = [A^2] → get_matrix_exps(I_list) = {A: 2})
 matrix_exps = get_matrix_exps(I_list)
+# Substitute the identity matrix wherever possible
+# We apply substitutions to the expression sum_vQv - p, which equals 0
 simplified = sub_identity_matrix(sub_identity_matrix(sp.expand(sum_vQv - p), matrix_exps),matrix_exps)
 
+# Extract the coefficients of the polynomial and set all to 0
 sol = get_coeffs(simplified, matrix_vars)
 
 # Check for False anywhere in the solution list
@@ -71,6 +78,7 @@ extra_subs = {lm_sp: lm_cp}
 
 cvx_eqs = []
 
+# Replace the SymPy variables in sol with their original cvxpy variables
 for eq in sol:
     cvx_eqs.append(sp_to_cp_constraint_multiQ(eq, [Q0] + Qi_list, extra_subs=extra_subs))
 
@@ -94,12 +102,6 @@ vQ0v = (clean_value(sp.Adjoint(vQ0v_sqrt) * vQ0v_sqrt)[0,0])
 
 SOS_decomp = vQ0v
 
-# Add g_i * (v^T Qi v) terms
-def simplify_zero(expr):
-    if isinstance(expr, Mul) and 0 in expr.args:
-        return S.Zero
-    return expr
-
 for i, g in enumerate(g_list):
     if Qi_list[i].value is not None:
         print("Qi matrix:", clean_value(Qi_list[i].value))
@@ -108,7 +110,6 @@ for i, g in enumerate(g_list):
         vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
         SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
 SOS_decomp = remove_zero_terms(SOS_decomp)
-# print("\nSOS decomposition:", remove_zero_terms(SOS_decomp))
 print("\nSOS decomposition:", str(SOS_decomp).replace("Adjoint", "Adj"))
 
 # WORKING CHSH EXAMPLE
