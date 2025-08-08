@@ -27,6 +27,7 @@ p = get_poly(matrix_vars, n)
 p = -p
 p += lm_sp * sp.Identity(n)
 g_list, I_list = get_constraints(matrix_vars, n)
+g_list.extend([-g for g in g_list])
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
 Q0 = cp.Variable((m, m), PSD=True)  # for main SOS
@@ -102,13 +103,13 @@ vQ0v = (clean_value(sp.Adjoint(vQ0v_sqrt) * vQ0v_sqrt)[0,0])
 
 SOS_decomp = vQ0v
 
-for i, g in enumerate(g_list):
-    if Qi_list[i].value is not None:
-        print("Qi matrix:", clean_value(Qi_list[i].value))
-        Qi_sqrt = sp.Matrix(matrix_sqrt(Qi_list[i].value))
-        vQv_sqrt = (Qi_sqrt.T @ v)
-        vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
-        SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
+# for i, g in enumerate(g_list):
+#     if Qi_list[i].value is not None:
+#         print("Qi matrix:", clean_value(Qi_list[i].value))
+#         Qi_sqrt = sp.Matrix(matrix_sqrt(Qi_list[i].value))
+#         vQv_sqrt = (Qi_sqrt.T @ v)
+#         vQv = (clean_value(sp.Adjoint(vQv_sqrt) * vQv_sqrt)[0,0])
+#         SOS_decomp = sp.Add(SOS_decomp, sp.MatMul(vQv, g, evaluate=False), evaluate=False)
 SOS_decomp = remove_zero_terms(SOS_decomp)
 print("\nSOS decomposition:", str(SOS_decomp).replace("Adjoint", "Adj"))
 
@@ -120,7 +121,7 @@ print("\nSOS decomposition:", str(SOS_decomp).replace("Adjoint", "Adj"))
 # Enter a polynomial in terms of B0, A1, I, B1, A0, Adjoint:
 # A0B0+A0B1+A1B0-A1B1
 # Enter >= 0 constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish):
-# I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1,A0^2 - I,A1^2 - I,B0^2 - I,B1^2 - I,B0A0 - A0B0,B1A0 - A0B1,B0A1 - A1B0,B1A1 - A1B1
+# I-A0^2,I-A1^2,I-B0^2,I-B1^2,A0B0-B0A0,A0B1-B1A0,A1B0-B0A1,A1B1-B1A1
 # Enter = I constraints g(B0, A1, I, B1, A0) (comma-separated) (press Enter to finish):
 # A0^2, A1^2, B0^2, B1^2
 # Lambda:
