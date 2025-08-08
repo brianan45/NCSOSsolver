@@ -19,7 +19,7 @@ def get_constraints(vars, n):
     var_dict["I"] = sp.Identity(n)  # ✅ Add identity matrix symbol
 
 
-    inp = input(f"Enter >= 0 constraints g({', '.join(str(v) for v in vars)}) (comma-separated) (press Enter to finish): ").strip()
+    inp = input(f"Enter = 0 constraints g({', '.join(str(v) for v in vars)}) (comma-separated) (press Enter to finish): ").strip()
 
     # Split by comma and preprocess each expression
     exprs = inp.split(',')
