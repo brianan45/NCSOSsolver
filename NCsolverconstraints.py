@@ -27,6 +27,9 @@ p = get_poly(matrix_vars, n)
 p = -p
 p += lm_sp * sp.Identity(n)
 g_list, I_list = get_constraints(matrix_vars, n)
+# Since g_list is a list of constraints g(x) = 0, we need to negate them
+# to convert them to the form g(x) >= 0 for the SOS solver, since we require
+# nonnegatvity constraints and g = 0 implies -g >= 0 and g >= 0
 g_list.extend([-g for g in g_list])
 
 # Define symmetric 4x4 matrix Q and lambda with cvxpy variables
