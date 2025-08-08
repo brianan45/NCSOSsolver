@@ -34,7 +34,7 @@ def get_vars_vec():
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
     vars = {matrices[name] for name in var_names}
 
-    monomial_input = input("Enter the monomial expressions (comma-separated; enter ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
+    monomial_input = input("Enter the monomial expressions (comma-separated; enter I for 1 / identity matrix, ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
     raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
 
     processed_monomials = [
