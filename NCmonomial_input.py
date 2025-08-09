@@ -1,28 +1,30 @@
 import sympy as sp
-from sympy.parsing.sympy_parser import (
-    parse_expr,
-    standard_transformations,
-    convert_xor
-)
-import re
+from sympy.parsing.sympy_parser import parse_expr, standard_transformations, convert_xor
+import itertools
 
-def preprocess_monomials(expr_str):
-    # Convert ^T to .T and insert * if followed by a symbol
-    expr_str = expr_str.replace('^T', '.T')
-    expr_str = re.sub(r'\.T(?=\w)', '.T*', expr_str)
+def insert_multiplication(expr, var_names):
+    # Example: turn 'AB' into 'A*B'
+    for name in var_names:
+        expr = expr.replace(name, f"{name}*")
+    # Remove the last '*' if present
+    if expr.endswith('*'):
+        expr = expr[:-1]
+    return expr
 
-    # Convert X^* to X, since we assume Hermitian matrices
-    expr_str = re.sub(r'(\w+)\^\*', r'\1', expr_str)
-    return expr_str
+def preprocess_monomials(expr):
+    # This can be customized for ^T, ^*, etc.
+    return expr
 
-def insert_multiplication(expr_str, var_names):
-    # Ensure variables like A0, B0, etc. are not split (match longest first)
-    var_names = sorted(var_names, key=len, reverse=True)
-    pattern = '|'.join(re.escape(name) for name in var_names)
+def generate_monomials(var_names, degree):
+    """Generate all monomials (as strings) up to given degree."""
+    monomials = ["I"]  # Start with identity
+    # Exclude I from variable list for generation
+    variables = [v for v in var_names if v != "I"]
 
-    # Tokenize: split where variables meet (e.g., A0B0 → A0 * B0)
-    tokens = re.findall(pattern, expr_str)
-    return '*'.join(tokens)
+    for d in range(1, degree + 1):
+        for prod in itertools.product(variables, repeat=d):
+            monomials.append("".join(prod))
+    return monomials
 
 def get_vars_vec():
     var_input = input("Enter the matrix variable names (assumed to be Hermitian) (comma-separated): ")
@@ -34,8 +36,14 @@ def get_vars_vec():
     matrices = {name: sp.MatrixSymbol(name, n, n) for name in var_names}
     vars = {matrices[name] for name in var_names}
 
-    monomial_input = input("Enter the monomial expressions (comma-separated; enter I for 1 / identity matrix, ^T for transpose, ^* for conjugate transpose, AB for A*B): ")
-    raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
+    monomial_input = input("Enter the monomial expressions (comma-separated; OR single integer degree for auto-generation): ").strip()
+
+    # Check if input is a single integer -> auto-generate monomials
+    if monomial_input.isdigit():
+        degree = int(monomial_input)
+        raw_monomials = generate_monomials(var_names, degree)
+    else:
+        raw_monomials = [expr.strip() for expr in monomial_input.split(',')]
 
     processed_monomials = [
         insert_multiplication(preprocess_monomials(expr), var_names)
