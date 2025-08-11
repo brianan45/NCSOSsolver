@@ -99,7 +99,7 @@ if problem.status == "infeasible":
 print("\nLambda:")
 print(clean_value(lm_cp.value))
 
-print("Q0 matrix =", clean_value(Q0.value))
+print("Q0 matrix =", clean_value(Q0.value,0,0))
 Q0_sqrt = sp.Matrix(matrix_sqrt(clean_value(Q0.value)))
 vQ0v_sqrt = Q0_sqrt.T @ v
 vQ0v = (clean_value(sp.Adjoint(vQ0v_sqrt) * vQ0v_sqrt)[0,0])
