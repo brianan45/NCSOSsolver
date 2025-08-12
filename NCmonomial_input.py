@@ -1,6 +1,7 @@
 import sympy as sp
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, convert_xor
 import itertools
+import re
 
 def insert_multiplication(expr, var_names):
     # Example: turn 'AB' into 'A*B'
@@ -11,9 +12,14 @@ def insert_multiplication(expr, var_names):
         expr = expr[:-1]
     return expr
 
-def preprocess_monomials(expr):
-    # This can be customized for ^T, ^*, etc.
-    return expr
+def preprocess_monomials(expr_str):
+    # Convert ^T to .T and insert * if followed by a symbol
+    expr_str = expr_str.replace('^T', '.T')
+    expr_str = re.sub(r'\.T(?=\w)', '.T*', expr_str)
+
+    # Convert X^* to X, since we assume Hermitian matrices
+    expr_str = re.sub(r'(\w+)\^\*', r'\1', expr_str)
+    return expr_str
 
 def generate_monomials(var_names, degree):
     """Generate all monomials (as strings) up to given degree."""
