@@ -96,5 +96,4 @@ for i, g in enumerate(g_list):
     vQv = remove_zero_terms(clean_value((vQv_sqrt.T * vQv_sqrt)[0,0]))
     SOS_decomp = sp.Add(SOS_decomp, sp.Mul(g, vQv, evaluate=False), evaluate=False)
 
-print("\nSOS decomposition of p(x) + λ:")
-print(SOS_decomp)
+print("\nSOS decomposition of p(x) + λ:", SOS_decomp)
