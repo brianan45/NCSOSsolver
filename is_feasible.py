@@ -21,7 +21,7 @@ def is_feasible(g_list, vars):
         constraint_expr = And(*inequalities)
 
         sol = sp.reduce_inequalities(constraint_expr, vars)
-        return sol != False  # reduce_inequalities returns False if infeasible
+        return sol is not False  # reduce_inequalities returns False if infeasible
 
     """
     Check if the set of inequalities g_i(x) >= 0 has any feasible solution.
