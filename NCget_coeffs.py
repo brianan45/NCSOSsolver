@@ -49,8 +49,6 @@ def get_coeffs(expr, matrix_vars):
 
     for term in terms:
         scalar, matrix = decompose_term(term, matrix_vars)
-        # print("scalar =", scalar)
-        # print("matrix =", matrix)
         if matrix in coeff_map:
             coeff_map[matrix] += scalar
         else:
@@ -61,5 +59,4 @@ def get_coeffs(expr, matrix_vars):
     if sp.Integer(1) in coeff_map:
         # For example, you might want to keep it or remove it
         pass
-    # print("coeff_map =", coeff_map)
     return [sp.Eq(coeff, 0) for coeff in coeff_map.values()]
