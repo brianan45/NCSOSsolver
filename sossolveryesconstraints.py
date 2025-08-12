@@ -10,6 +10,7 @@ from matrix_sqrt import matrix_sqrt
 from get_constraints import get_constraints
 from clean_value import clean_value
 from is_feasible import is_feasible
+from remove_zero_terms import remove_zero_terms
 
 # An SOS solver that takes a set of variables, a vector v of
 # monomials in those variables, a polynomial p(x) in those variables,
@@ -90,9 +91,9 @@ SOS_decomp = vQ0v
 
 # Add g_i * (v^T Qi v) terms
 for i, g in enumerate(g_list):
-    Qi_sqrt = matrix_sqrt(Qi_list[i].value)
+    Qi_sqrt = clean_value(matrix_sqrt(Qi_list[i].value))
     vQv_sqrt = Qi_sqrt.T @ v
-    vQv = clean_value((vQv_sqrt.T * vQv_sqrt)[0,0])
+    vQv = remove_zero_terms(clean_value((vQv_sqrt.T * vQv_sqrt)[0,0]))
     SOS_decomp = sp.Add(SOS_decomp, sp.Mul(g, vQv, evaluate=False), evaluate=False)
 
 print("\nSOS decomposition of p(x) + λ:")
