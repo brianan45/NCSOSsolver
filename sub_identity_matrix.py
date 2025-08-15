@@ -19,6 +19,7 @@ def get_matrix_exps(expr_list):
 
     return result
 
+# a function that takes a matrix expression and substitutes the identity matrix wherever possible
 def sub_identity_matrix(expr, identity_powers):
     def simplify_power(base, exp):
         if base in identity_powers:

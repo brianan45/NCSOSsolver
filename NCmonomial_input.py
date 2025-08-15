@@ -3,6 +3,8 @@ from sympy.parsing.sympy_parser import parse_expr, standard_transformations, con
 import itertools
 import re
 
+# a function that gets the variables and monomials from user input
+
 def insert_multiplication(expr, var_names):
     # Example: turn 'AB' into 'A*B'
     for name in var_names:
@@ -22,6 +24,8 @@ def preprocess_monomials(expr_str):
     return expr_str
 
 def generate_monomials(var_names, degree):
+    # if user inputs a number n instead of a monomial vector, generate a
+    # vector of all possible monomials in the given variables, up to degree n
     """Generate all monomials (as strings) up to given degree."""
     monomials = ["I"]  # Start with identity
     # Exclude I from variable list for generation
@@ -44,7 +48,7 @@ def get_vars_vec():
 
     monomial_input = input("Enter the monomial expressions (comma-separated; OR single integer degree for auto-generation): ").strip()
 
-    # Check if input is a single integer -> auto-generate monomials
+    # If input is a single integer, auto-generate monomials
     if monomial_input.isdigit():
         degree = int(monomial_input)
         raw_monomials = generate_monomials(var_names, degree)

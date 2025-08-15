@@ -5,7 +5,7 @@ import re
 def sp_to_cp_constraint_multiQ(eq, Q_list, extra_subs=None):
     """
     Converts a SymPy equation into a CVXPY constraint using:
-    - Qn_ij symbols corresponding to Q_list[n][i,j]
+    - Qn_i_j symbols corresponding to Q_list[n][i,j]
     - extra_subs for substitutions like lm_cp, etc.
 
     Args:
@@ -19,7 +19,7 @@ def sp_to_cp_constraint_multiQ(eq, Q_list, extra_subs=None):
     if extra_subs is None:
         extra_subs = {}
 
-    pattern = re.compile(r'[qQ](\d+)_(\d+)_(\d+)')
+    pattern = re.compile(r'[qQ](\d+)_(\d+)_(\d+)') # Matches q0_i_j, q1_i_j, etc.
 
     sym_to_cvx = {}
 

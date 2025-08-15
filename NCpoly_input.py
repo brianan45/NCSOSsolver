@@ -12,6 +12,8 @@ transformations = standard_transformations + (
     convert_xor
 )
 
+# a function that takes a polynomial from user input
+
 def preprocess_monomials(expr_str):
     """
     Preprocesses input to handle matrix powers, adjoints, transposes, etc.
@@ -41,7 +43,6 @@ def get_poly(variables, n):
     Returns:
         sympy.Expr: Parsed polynomial expression
     """
-    # var_dict = {str(v): v for v in variables}
     var_dict = {var.name: sp.MatrixSymbol(var.name, n, n) for var in variables}
     var_dict["Adjoint"] = sp.Adjoint
     var_dict["I"] = sp.Identity(n)  # ✅ Add identity matrix symbol
