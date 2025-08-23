@@ -13,7 +13,7 @@ def clean_value(val, zero_tol=1e-4, int_tol=1e-4):
             return 0
         elif is_near_int(x):
             return float(round(x))
-        return round(x,2)
+        return x
     # SymPy scalar
     if isinstance(val, sp.Basic):
         return val.replace(
@@ -31,7 +31,7 @@ def clean_value(val, zero_tol=1e-4, int_tol=1e-4):
 
     # NumPy array
     elif isinstance(val, np.ndarray):
-        return np.vectorize(clean_number)(val)
+        return np.vectorize(clean_number, otypes=[np.float64])(val)
 
     else:
         raise TypeError("Unsupported type. Provide a SymPy expression, NumPy scalar, or NumPy array.")
