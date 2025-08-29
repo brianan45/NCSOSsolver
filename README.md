@@ -1,11 +1,11 @@
 This repo contains solvers that rewrite polynomials as sum-of-squares using semidefinite optimization, plus required helper functions. CVXPY and SymPy are required to run the solvers; both can be downloaded by entering "pip install sympy cvxpy" in the command line. Included in the repo is a guide, Final_Report.pdf, on how to use the solvers and more context behind them.
 
-Polynomial solvers include:
-unconstrained commutative (sossolvernoconstraints.py)
-constrained commutative (sossolveryesconstraints.py)
-unconstrained complex commutative (complexsolver.py)
-unconstrained non-commutative (NCsolvernoconstraints.py)
-constrained non-commutative (NCsolverconstraints.py)
+Polynomial solvers include:  
+unconstrained commutative (sossolvernoconstraints.py)  
+constrained commutative (sossolveryesconstraints.py)  
+unconstrained complex commutative (complexsolver.py)  
+unconstrained non-commutative (NCsolvernoconstraints.py)  
+constrained non-commutative (NCsolverconstraints.py)  
 
 An example of how to use the constrained non-commutative solver (NCsovlerconstraints.py) can be seen below:
 
